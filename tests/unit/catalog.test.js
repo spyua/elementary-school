@@ -2,8 +2,8 @@ import { SUBJECTS, PACKS, findPack, findUnit, allUnits } from '../../src/content
 
 const LEGACY_ORDER = ['num10', 'line', 'curve', 'thick', 'align', 'order', 'split', 'shape', 'add', 'sub', 'num30', 'time'];
 
-test('所有 id 不重複且格式正確', () => {
-  const ids = PACKS.flatMap(p => [...p.units, ...p.reviews].map(u => u.id));
+test('所有 id（含考試）不重複且格式正確', () => {
+  const ids = PACKS.flatMap(p => [...p.units, ...p.reviews, ...(p.exams || [])].map(u => u.id));
   expect(new Set(ids).size).toBe(ids.length);
   for (const id of ids) expect(id).toMatch(/^G\dA?-[MES]-[\w-]+$/);
 });
@@ -51,6 +51,15 @@ test('findPack / findUnit / allUnits', () => {
   expect(findUnit(p, 'nope')).toBeUndefined();
   expect(findUnit(undefined, 'curve')).toBeUndefined();
   expect(allUnits().filter(x => x.pack === p).map(x => x.unit.key)).toEqual(LEGACY_ORDER);
+});
+
+test('g1a-math 有期中考、期末考，固定 ID 不變，findUnit 找得到', () => {
+  const p = findPack(1, 'math', 'a');
+  expect(p.exams.map(x => x.id)).toEqual(['G1A-M-exam-mid', 'G1A-M-exam-final']);
+  expect(findUnit(p, 'exam-mid')).toMatchObject({ id: 'G1A-M-exam-mid', title: '期中考' });
+  expect(findUnit(p, 'exam-final')).toMatchObject({ id: 'G1A-M-exam-final', title: '期末考' });
+  // 沒有 exams 欄位的學期包也不會出錯
+  expect(findUnit(findPack(1, 'english', 'demo'), 'exam-mid')).toBeUndefined();
 });
 
 test('英文試玩包只有一個單元 G1-E-words', () => {

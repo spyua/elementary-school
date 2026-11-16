@@ -1,4 +1,4 @@
-// 一上數學學期包：12 個單元的場景與題型，以及 2 個總複習。
+// 一上數學學期包：12 個單元的場景與題型、2 個總複習，以及期中考、期末考的藍圖。
 // 名稱、圖示、說明等中繼資料只放在 catalog.js；打開單元時用 { ...meta, ...body } 合併。
 // 匯入這個模組時，會順便把所有題型登記到練習引擎。
 import { registerTypes } from '../../../engine/practice.js';
@@ -9,6 +9,7 @@ import { unitNum10, unitOrder, TYPES as NUMBER_TYPES } from './numbers.js';
 import { unitShape, TYPES as SHAPE_TYPES } from './shapes.js';
 import { unitAdd, unitSub, TYPES as ADDSUB_TYPES } from './addsub.js';
 import { unitNum30, unitTime, TYPES as NUM30TIME_TYPES } from './num30time.js';
+import { MID_BLUEPRINT, FINAL_BLUEPRINT } from './exam.js';
 
 for (const types of [LENGTH_TYPES, SPLIT_TYPES, NUMBER_TYPES, SHAPE_TYPES, ADDSUB_TYPES, NUM30TIME_TYPES]) {
   registerTypes(types);
@@ -39,4 +40,10 @@ const reviews = {
   },
 };
 
-export default { bodies, reviews };
+// 期中考、期末考：只放藍圖，出卷與作答由 src/engine/exam.js 處理。
+const exams = {
+  'exam-mid': { blueprint: MID_BLUEPRINT },
+  'exam-final': { blueprint: FINAL_BLUEPRINT },
+};
+
+export default { bodies, reviews, exams };

@@ -205,3 +205,28 @@ details.offline summary{font-weight:900;font-size:19px;cursor:pointer}
   .crumb,.fx-layer{display:none}
 }
 @keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* ===== 考試（期中考、期末考） ===== */
+/* 數字題：選中的數字放大加黃框；「✔ 好了」要夠大，iPad 好按 */
+#bar .num.sel{border-color:var(--yellow);background:var(--highlight);transform:scale(1.12)}
+#bar #examOk{min-width:160px;min-height:64px;background:var(--green);animation:pulse 1s infinite}
+/* 成績單面板：蓋在 #stage 上，內容多時可以捲動 */
+#examResult{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,248,231,.97);padding:14px 16px 20px;text-align:center;animation:fadein .3s ease-out both}
+#examResult .exHead{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+#examResult .exMedal{width:96px;height:96px;transform-box:border-box}
+#examResult .exScore{font-size:clamp(40px,8vw,64px);font-weight:900;color:var(--accent);line-height:1.1}
+#examResult .exMsg{font-size:clamp(18px,3vw,24px);font-weight:700;color:var(--ink-soft)}
+#examResult .exTitle{margin:14px 0 8px;font-size:clamp(20px,3.4vw,28px);color:var(--ink)}
+#examResult .exCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.examCard{min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:inherit;font-size:20px;font-weight:900;color:var(--ink);background:var(--card);border:3px solid var(--edge-soft);border-radius:var(--r-md);box-shadow:0 5px 0 var(--edge-soft);cursor:pointer;padding:8px}
+.examCard:active{transform:var(--press);box-shadow:0 2px 0 var(--edge-soft)}
+.examCard img{width:40px;height:40px}
+.examCard .exLook{font-size:17px;color:var(--blue)}
+.examCard.seen{background:var(--review-bg);border-color:var(--dot-done)}
+.examCard.seen .exLook{color:var(--green-dark)}
+#examResult .exSticker{display:inline-flex;align-items:center;gap:10px;margin-top:16px;padding:10px 22px;border-radius:999px;background:var(--highlight);border:3px dashed var(--yellow);font-size:clamp(20px,3.4vw,26px);font-weight:900;color:var(--tag-gold-ink)}
+#examResult .exSticker img{width:44px;height:44px}
+@media (prefers-reduced-motion:reduce){
+  #bar #examOk{animation:none}
+  #bar .num.sel{transform:none}
+}

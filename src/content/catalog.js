@@ -91,6 +91,13 @@ const G1A_MATH_REVIEWS = [
   { key: 'review-all', title: '全冊總複習', desc: '12 題，混合一上所有單元' },
 ].map(r => ({ id: `G1A-M-${r.key}`, ...r }));
 
+// 期中考（第一～五章）、期末考（第六～九章）。藍圖在學期包 src/content/math/g1a/exam.js。
+// 固定 ID 一旦提交就不再更改，星星進度用它當鍵值。
+const G1A_MATH_EXAMS = [
+  { key: 'exam-mid', title: '期中考', desc: '20 題・100 分' },
+  { key: 'exam-final', title: '期末考', desc: '20 題・100 分' },
+].map(x => ({ id: `G1A-M-${x.key}`, icon: '📝', ...x }));
+
 export const PACKS = [
   {
     id: 'g1a-math', grade: 1, subject: 'math', semester: 'a', label: '上學期',
@@ -129,6 +136,7 @@ export const PACKS = [
     },
     units: G1A_MATH_UNITS,
     reviews: G1A_MATH_REVIEWS,
+    exams: G1A_MATH_EXAMS,
   },
   // 英文示範（試玩）：只用範本做成，用來驗證範本機制與英文語音，不對應正式學期。
   {
@@ -163,7 +171,8 @@ export function findPack(grade, subject, semester) {
 
 export function findUnit(pack, key) {
   if (!pack) return undefined;
-  return pack.units.find(u => u.key === key) || pack.reviews.find(r => r.key === key);
+  return pack.units.find(u => u.key === key) || pack.reviews.find(r => r.key === key)
+    || (pack.exams || []).find(x => x.key === key);
 }
 
 export function allUnits() {

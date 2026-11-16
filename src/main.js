@@ -76,8 +76,8 @@ async function showUnit(route, token) {
     return;
   }
   if (token !== routeToken) return;
-  const { bodies, reviews } = mod.default;
-  const body = bodies[route.key] || reviews[route.key];
+  const { bodies, reviews, exams } = mod.default;
+  const body = bodies[route.key] || reviews[route.key] || exams?.[route.key];
   if (!body) {
     navigate({ view: 'home' });
     return;
