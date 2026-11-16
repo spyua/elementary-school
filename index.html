@@ -31,6 +31,37 @@ details.parent{background:#eef6ff;border-radius:18px;padding:12px 18px;margin-to
 details.parent summary{font-weight:900;font-size:19px;cursor:pointer}
 details.parent h4{margin:12px 0 2px;font-size:17px}
 details.parent ul{margin:4px 0;padding-left:22px}
+/* platform views */
+a.unit{display:block;text-decoration:none}
+.continue{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--green);color:#fff;text-decoration:none;font-size:clamp(22px,4.4vw,34px);font-weight:900;border-radius:26px;padding:22px 20px;margin:10px 0 6px;box-shadow:0 7px 0 #1e8a56;text-align:center}
+.continue:active{transform:translateY(3px);box-shadow:0 4px 0 #1e8a56}
+.continue .play{font-size:1.2em}
+.view-title,.pick{font-size:clamp(19px,3.2vw,24px);font-weight:900;margin:14px 0 4px}
+.grade-card,.subject-card{display:block;background:#fff;border-radius:22px;padding:18px 16px;text-decoration:none;color:var(--ink);box-shadow:0 6px 0 var(--edge);text-align:center}
+.grade-card .nm,.subject-card .nm{font-size:24px;font-weight:900}
+.subject-card .ic{font-size:44px}
+.subject-card .ds{font-size:15px;color:#7a6650}
+.grade-card.soon,.subject-card.soon{opacity:.55;cursor:default;box-shadow:0 3px 0 var(--edge)}
+.tag.soon-tag{background:#eee;color:#777}
+.tag.trial{background:#e1f0ff;color:#1b5fbf}
+.tag.now{background:#fff3c4;color:#a06d00}
+.profile{display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:10px 14px;margin:8px 0;box-shadow:0 4px 0 var(--edge);font-size:20px}
+.profile.active{outline:3px solid var(--yellow)}
+.profile .pic{font-size:34px}
+.profile .who{flex:1;font-weight:900}
+.smallbtn{font-family:inherit;font-size:17px;font-weight:700;border:none;border-radius:14px;padding:8px 14px;background:#fff6d6;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 #e5d6b8}
+.smallbtn:disabled{opacity:.4;cursor:default}
+.smallbtn.danger{background:var(--red);color:#fff}
+.panel{background:#fff;border-radius:18px;padding:12px 18px;margin:14px 0;box-shadow:0 4px 0 var(--edge);font-size:17px;line-height:1.6}
+.panel h3{margin:4px 0 8px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.icon-pick{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.icon-pick button{font-size:28px;width:52px;height:52px;border-radius:14px;border:3px solid #e5d6b8;background:#fff;cursor:pointer}
+.icon-pick button[aria-pressed="true"]{border-color:var(--yellow);background:#fff6d6}
+#newName{font:inherit;font-size:19px;padding:8px 12px;border-radius:12px;border:3px solid #e5d6b8;width:min(100%,260px)}
+#importMsg{font-weight:700;min-height:1.6em;margin:6px 0}
+dialog{border:none;border-radius:20px;padding:18px 22px;font-size:18px;color:var(--ink);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+dialog::backdrop{background:rgba(61,44,30,.35)}
 /* lesson */
 #crumb{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
 .dot{width:14px;height:14px;border-radius:50%;background:#ecdcb9}
@@ -69,12 +100,11 @@ nav button:disabled{opacity:.4;cursor:default}
     <button class="iconbtn hidden" id="homeBtn" title="回首頁">🏠</button>
     <h1>📏 小學互動教室</h1>
     <button class="iconbtn" id="mute" title="聲音開關">🔊</button>
+    <button class="iconbtn hidden" id="profileBtn" title="孩子檔案">🐣</button>
   </header>
 
-  <!-- HOME：Task 7 會換成正式的首頁、年級與學期畫面 -->
-  <section id="home">
-    <div class="grid" id="units"></div>
-  </section>
+  <!-- 首頁、年級、學期、孩子檔案畫面：由 src/platform/views/ 繪製在這裡 -->
+  <section id="home"></section>
 
   <!-- LESSON / PRACTICE -->
   <section id="lesson" class="hidden">
