@@ -1,4 +1,6 @@
-// 啟動：載入進度、依路由顯示首頁、年級、學期、孩子檔案或單元畫面。
+// 啟動：載入樣式與進度、依路由顯示首頁、年級、學期、孩子檔案、致謝或單元畫面。
+import './styles/tokens.css';
+import './styles/app.css';
 import { findPack, findUnit } from './content/catalog.js';
 import { onRoute, navigate } from './platform/router.js';
 import { loadState, saveState, markVisited, recordResult } from './platform/storage.js';
@@ -10,9 +12,11 @@ import * as homeView from './platform/views/home.js';
 import * as gradeView from './platform/views/grade.js';
 import * as semesterView from './platform/views/semester.js';
 import * as profilesView from './platform/views/profiles.js';
+import * as creditsView from './platform/views/credits.js';
+import { icon } from './platform/icons.js';
 
 const $ = s => document.querySelector(s);
-const VIEWS = { home: homeView, grade: gradeView, semester: semesterView, profiles: profilesView };
+const VIEWS = { home: homeView, grade: gradeView, semester: semesterView, profiles: profilesView, credits: creditsView };
 
 let state = loadState();
 let current = { view: 'home' };
@@ -36,7 +40,8 @@ const semesterOf = r => ({ view: 'semester', grade: r.grade, subject: r.subject,
 function updateHeader() {
   const p = state.profiles[state.activeProfile];
   const btn = $('#profileBtn');
-  btn.textContent = p.icon;
+  // Tabler 圖示加上目前孩子的頭像小徽章。
+  btn.replaceChildren(icon('kid', 30), Object.assign(document.createElement('span'), { className: 'badge', textContent: p.icon }));
   btn.title = `孩子檔案：${p.name}`;
   btn.classList.toggle('hidden', current.view !== 'home');
   $('#homeBtn').classList.toggle('hidden', current.view === 'home');
@@ -75,15 +80,20 @@ setPracticeHooks({
   goHome: () => navigate(current.view === 'unit' ? semesterOf(current) : { view: 'home' }),
 });
 
+$('#homeBtn').replaceChildren(icon('home', 30));
 $('#homeBtn').onclick = () => navigate(current.view === 'unit' ? semesterOf(current) : { view: 'home' });
 $('#profileBtn').onclick = () => navigate({ view: 'profiles' });
 $('#startBtn').onclick = unlockAudio;
-// 朗讀（🔊）與音效（🎵）分開開關，狀態存在 state.settings，重新整理後不變。
+// 朗讀與音效分開開關，狀態存在 state.settings，重新整理後不變。
 function applySettings() {
   S.muted = state.settings.muted;
   S.sfxMuted = state.settings.sfxMuted;
-  $('#mute').textContent = S.muted ? '🔇' : '🔊';
+  const mute = $('#mute');
+  mute.replaceChildren(icon(S.muted ? 'volumeOff' : 'volume', 30));
+  mute.setAttribute('aria-pressed', String(!S.muted));
+  mute.title = S.muted ? '朗讀：關' : '朗讀：開';
   const sfx = $('#sfxBtn');
+  sfx.replaceChildren(icon(S.sfxMuted ? 'musicOff' : 'music', 30));
   sfx.setAttribute('aria-pressed', String(!S.sfxMuted));
   sfx.title = S.sfxMuted ? '音效：關' : '音效：開';
 }

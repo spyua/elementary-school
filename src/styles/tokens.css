@@ -1,0 +1,57 @@
+/* 顏色與尺寸變數。
+   顏色值與舊檔 :root 相同；其餘舊檔寫死的色碼也集中到這裡。
+   圓角、間距、緩動曲線引用 open-props，只載入用到的子檔。 */
+@import 'open-props/src/props.borders.css';
+@import 'open-props/src/props.sizes.css';
+@import 'open-props/src/props.easing.css';
+
+:root {
+  /* 舊檔 :root 原樣保留 */
+  --red: #ff5a5f;
+  --blue: #3a86ff;
+  --green: #2bb673;
+  --yellow: #ffbe0b;
+  --bg: #fff8e7;
+  --ink: #3d2c1e;
+  --card: #fff;
+  --edge: #ecdcb9;
+
+  /* 舊檔散落在各規則裡的顏色 */
+  --edge-soft: #e5d6b8;      /* 小按鈕、輸入框的邊與陰影 */
+  --ink-soft: #7a6650;       /* 說明文字 */
+  --ink-faint: #9a8466;      /* 頁尾小字 */
+  --accent: #e07a00;         /* 章節標題、場景標題 */
+  --gold: #c99400;           /* 分數 */
+  --highlight: #fff6d6;      /* 選取中的按鈕 */
+  --review-bg: #fff3c4;      /* 總複習卡片、「使用中」標籤 */
+  --dot-done: #f4c96b;
+  --green-dark: #1e8a56;
+  --parent-bg: #eef6ff;
+  --tag-red-bg: #ffe1e1;
+  --tag-red-ink: #c0392b;
+  --tag-blue-bg: #e1f0ff;
+  --tag-blue-ink: #1b5fbf;
+  --tag-gold-ink: #a06d00;
+  --soon-bg: #eee;
+  --soon-ink: #777;
+  --tool-border: #ddd;
+
+  /* 圓角：舊檔 8～26px，對應到最接近的 open-props 值 */
+  --r-tag: var(--size-2);    /* 8px */
+  --r-sm: var(--radius-3);   /* 16px，舊檔 12～16px */
+  --r-md: var(--size-4);     /* 20px，舊檔 18～20px */
+  --r-lg: var(--size-5);     /* 24px，舊檔 22px 的卡片 */
+  --r-xl: var(--size-6);     /* 28px，舊檔 26px 的大按鈕 */
+  --r-round: var(--radius-round);
+
+  /* 立體感的實心底影（按下時往下 3px，產生凹陷感）。
+     open-props 的陰影都是柔和的投影，做不出這種效果，所以自訂。 */
+  --lift-sm: 0 3px 0 var(--edge-soft);
+  --lift-md: 0 4px 0 var(--edge);
+  --lift-lg: 0 6px 0 var(--edge);
+  --press: translateY(3px);
+  --ease-press: var(--ease-3);
+
+  /* 字型：粉圓（Huninn）為主，Noto Sans TC 與系統字型備用 */
+  --font-main: "Huninn", "Noto Sans TC", system-ui, sans-serif;
+}

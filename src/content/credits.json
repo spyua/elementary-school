@@ -1,9 +1,44 @@
 [
   {
+    "name": "Open Props (open-props)",
+    "url": "https://open-props.style/",
+    "license": "MIT",
+    "author": "Adam Argyle",
+    "usage": "CSS 變數：圓角、尺寸、緩動曲線（src/styles/tokens.css 只載入 borders、sizes、easing 三個子檔）"
+  },
+  {
+    "name": "Tabler Icons (@tabler/icons)",
+    "url": "https://tabler.io/icons",
+    "license": "MIT",
+    "author": "Paweł Kuna",
+    "usage": "介面圖示：回首頁、朗讀開關、音效開關、孩子檔案、繼續學習、致謝（src/platform/icons.js）"
+  },
+  {
+    "name": "Microsoft Fluent Emoji",
+    "url": "https://github.com/microsoft/fluentui-emoji",
+    "license": "MIT",
+    "author": "Microsoft Corporation",
+    "usage": "範本單元與英文示範單元的圖卡、數數物件（Flat／Color SVG 複製到 public/emoji/）"
+  },
+  {
     "name": "Kenney Interface Sounds",
     "url": "https://kenney.nl/assets/interface-sounds",
     "license": "CC0-1.0",
     "author": "Kenney (www.kenney.nl)",
     "usage": "答對、答錯、得星、點擊音效（public/sfx/：correct ← confirmation_001、wrong ← error_006、star ← maximize_006、tap ← click_001，轉成 mp3）"
+  },
+  {
+    "name": "jf open 粉圓（Huninn）",
+    "url": "https://github.com/justfont/open-huninn-font",
+    "license": "OFL-1.1",
+    "author": "justfont",
+    "usage": "全站主要中文字型，透過 Google Fonts 載入，未自行裁切或修改"
+  },
+  {
+    "name": "Noto Sans TC",
+    "url": "https://fonts.google.com/noto/specimen/Noto+Sans+TC",
+    "license": "OFL-1.1",
+    "author": "Google",
+    "usage": "備用中文字型（粉圓缺字時使用），透過 Google Fonts 載入"
   }
 ]

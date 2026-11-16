@@ -198,3 +198,16 @@ test('不存在的年級回到首頁', async ({ page }) => {
   await expect(page.locator('#continue')).toBeVisible();
   await expect(page.locator('#lesson')).toBeHidden();
 });
+
+test('首頁底部有致謝連結，致謝頁依 credits.json 列出每一筆', async ({ page }) => {
+  const credits = JSON.parse(readFileSync('src/content/credits.json', 'utf8'));
+  await page.goto('/#/');
+  await page.locator('#creditsLink').click();
+  await expect(page).toHaveURL(/#\/credits$/);
+  await expect(page.locator('.credits li')).toHaveCount(credits.length);
+  for (const c of credits) {
+    await expect(page.locator('.credits a', { hasText: c.name })).toHaveAttribute('href', c.url);
+  }
+  // 頁首的回首頁按鈕是 Tabler 圖示，不是 emoji。
+  await expect(page.locator('#homeBtn svg')).toHaveCount(1);
+});

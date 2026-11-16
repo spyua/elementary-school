@@ -1,8 +1,9 @@
-// 首頁：最上方「繼續學習」大按鈕，下方一到六年級卡片。
+// 首頁：最上方「繼續學習」大按鈕，下方一到六年級卡片，最底下是致謝頁連結。
 import { PACKS, allUnits } from '../../content/catalog.js';
 import { formatRoute } from '../router.js';
 import { nextUnit } from '../storage.js';
 import { h, GRADE_NAMES } from './dom.js';
+import { icon } from '../icons.js';
 
 export function render(container, ctx) {
   const list = allUnits();
@@ -13,7 +14,7 @@ export function render(container, ctx) {
     const { pack, unit } = list.find(x => x.unit.id === id) || list[0];
     const href = formatRoute({ view: 'unit', grade: pack.grade, subject: pack.subject, semester: pack.semester, key: unit.key });
     nodes.push(h('a', { id: 'continue', className: 'continue', href },
-      h('span', { className: 'play' }, '▶'),
+      h('span', { className: 'play' }, icon('play', 36)),
       h('span', {}, `繼續學習：${unit.icon} ${unit.name}`)));
   }
 
@@ -31,6 +32,10 @@ export function render(container, ctx) {
     }
   });
   nodes.push(grid);
+
+  // 頁尾：致謝與授權頁的連結。
+  nodes.push(h('p', { className: 'home-foot' },
+    h('a', { id: 'creditsLink', href: formatRoute({ view: 'credits' }) }, icon('heart', 28), ' 致謝與授權')));
 
   container.replaceChildren(...nodes);
 }

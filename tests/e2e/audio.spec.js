@@ -118,7 +118,7 @@ test('兩個開關存在 state.settings，重新整理後不變', async ({ page 
   await page.locator('#mute').click();
   await page.locator('#sfxBtn').click();
   await page.reload();
-  await expect(page.locator('#mute')).toHaveText('🔇');
+  await expect(page.locator('#mute')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('#sfxBtn')).toHaveAttribute('aria-pressed', 'false');
   const settings = await page.evaluate(() => JSON.parse(localStorage.getItem('esp:v1')).settings);
   expect(settings).toEqual({ muted: true, sfxMuted: true });
@@ -131,6 +131,6 @@ test('兩個開關存在 state.settings，重新整理後不變', async ({ page 
   await page.locator('#mute').click();
   await page.locator('#sfxBtn').click();
   await page.reload();
-  await expect(page.locator('#mute')).toHaveText('🔊');
+  await expect(page.locator('#mute')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#sfxBtn')).toHaveAttribute('aria-pressed', 'true');
 });
