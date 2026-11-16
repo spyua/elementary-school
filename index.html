@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小學互動教室</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<!-- 樣式暫時沿用舊檔；之後搬到 src/styles/ 並改用變數。 -->
+<style>
+:root{--red:#ff5a5f;--blue:#3a86ff;--green:#2bb673;--yellow:#ffbe0b;--bg:#fff8e7;--ink:#3d2c1e;--card:#fff;--edge:#ecdcb9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:"Noto Sans TC",system-ui,sans-serif;color:var(--ink)}
+#app{max-width:980px;margin:0 auto;padding:12px 14px 28px}
+header{display:flex;align-items:center;gap:10px}
+header h1{flex:1;font-size:clamp(19px,3.4vw,28px);margin:4px 0;font-weight:900}
+.iconbtn{font-size:22px;border:none;background:#fff;border-radius:50%;width:48px;height:48px;box-shadow:0 3px 0 #e5d6b8;cursor:pointer;flex:none}
+.hidden{display:none!important}
+/* home */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:12px 0}
+.unit{background:#fff;border:none;border-radius:22px;padding:18px 16px;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer;box-shadow:0 6px 0 var(--edge);transition:transform .1s}
+.unit:active{transform:translateY(3px);box-shadow:0 3px 0 var(--edge)}
+.unit .ic{font-size:42px}
+.unit .nm{font-size:22px;font-weight:900;margin:6px 0 2px}
+.unit .ds{font-size:15px;color:#7a6650}
+.unit .st{margin-top:8px;font-size:18px;letter-spacing:2px}
+.unit.review{background:#fff3c4}
+.chap{grid-column:1/-1;margin:14px 0 -2px;font-size:21px;font-weight:900;color:#e07a00;border-bottom:3px dashed #ecdcb9;padding-bottom:4px}
+.unit .tag{display:inline-block;font-size:13px;background:#ffe1e1;color:#c0392b;border-radius:8px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.intro{background:#fff;border-radius:18px;padding:14px 18px;font-size:17px;line-height:1.6;box-shadow:0 4px 0 var(--edge)}
+details.parent{background:#eef6ff;border-radius:18px;padding:12px 18px;margin-top:14px;font-size:16px;line-height:1.7}
+details.parent summary{font-weight:900;font-size:19px;cursor:pointer}
+details.parent h4{margin:12px 0 2px;font-size:17px}
+details.parent ul{margin:4px 0;padding-left:22px}
+/* lesson */
+#crumb{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.dot{width:14px;height:14px;border-radius:50%;background:#ecdcb9}
+.dot.on{background:var(--yellow);transform:scale(1.25)}
+.dot.done{background:#f4c96b}
+#sceneTitle{font-size:clamp(18px,3vw,24px);font-weight:900;color:#e07a00;margin:4px 0 8px;display:flex;justify-content:space-between;gap:8px}
+#score{color:#c99400}
+#stage{position:relative;background:#fff;border-radius:22px;box-shadow:0 6px 0 var(--edge);overflow:hidden}
+svg{display:block;width:100%;height:auto;max-height:54vh;margin:0 auto;touch-action:manipulation}
+#sub{min-height:60px;margin:10px 0 6px;background:#fff;border-radius:18px;padding:12px 18px;font-size:clamp(19px,3.2vw,26px);font-weight:700;line-height:1.5;box-shadow:0 4px 0 var(--edge)}
+#bar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:8px 0;min-height:10px}
+#bar button,.bigbtn{font-family:inherit;font-size:clamp(19px,3.4vw,26px);font-weight:900;color:#fff;border:none;border-radius:18px;padding:12px 26px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.18)}
+#bar button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+#bar button:disabled{opacity:.4;cursor:default}
+#bar .tool{background:#fff;color:var(--ink);border:4px solid #ddd;box-shadow:0 4px 0 #e5d6b8}
+#bar .num{background:#fff;color:var(--ink);min-width:64px;padding:10px 12px;border:3px solid #e5d6b8;box-shadow:0 4px 0 #e5d6b8}
+#bar .tool.sel{border-color:var(--yellow);background:#fff6d6}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+nav{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+nav button{font-family:inherit;font-size:19px;font-weight:700;border:none;border-radius:16px;padding:11px 18px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 #e5d6b8}
+nav button:disabled{opacity:.4;cursor:default}
+#next.pulse{background:var(--yellow)}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,248,231,.97);text-align:center;padding:20px}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .35s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.svgtxt{font-family:"Noto Sans TC",sans-serif;font-weight:900}
+.blink{animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+#note{font-size:13px;color:#9a8466;text-align:center;margin-top:12px}
+</style>
+.unitlist{list-style:none;padding:0;margin:0}
+.unitlist a{color:inherit;text-decoration:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="iconbtn hidden" id="homeBtn" title="回首頁">🏠</button>
+    <h1>📏 小學互動教室</h1>
+    <button class="iconbtn" id="mute" title="聲音開關">🔊</button>
+  </header>
+
+  <!-- HOME：Task 7 會換成正式的首頁、年級與學期畫面 -->
+  <section id="home">
+    <div class="grid" id="units"></div>
+  </section>
+
+  <!-- LESSON / PRACTICE -->
+  <section id="lesson" class="hidden">
+    <div id="crumb"></div>
+    <div id="sceneTitle"><span id="stTxt"></span><span id="score"></span></div>
+    <div id="stage">
+      <svg id="svg" viewBox="0 0 800 420"></svg>
+      <div class="overlay hidden" id="startOv">
+        <div style="font-size:60px">🔊</div>
+        <div style="font-size:clamp(22px,4vw,32px);font-weight:900;margin:8px 0 18px">打開喇叭，準備開始！</div>
+        <button class="bigbtn pulse" id="startBtn" style="background:var(--green)">▶ 開始</button>
+      </div>
+    </div>
+    <div id="sub">　</div>
+    <div id="bar"></div>
+    <nav id="nav">
+      <button id="prev">◀ 上一段</button>
+      <button id="replay">🔁 再看一次</button>
+      <button id="next">下一段 ▶</button>
+    </nav>
+  </section>
+  <div id="note">語音使用瀏覽器內建中文朗讀（建議 Chrome、Edge、Safari）；沒有聲音時字幕仍會顯示。</div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
