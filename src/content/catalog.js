@@ -1,5 +1,6 @@
 // 全站目錄：只放中繼資料（名稱、圖示、說明、課綱對照）。
 // 單元的場景與題型放在各學期包，打開單元時才用 load() 延遲載入。
+import { packEmojiAssets } from '../engine/emoji-map.js';
 
 export const SUBJECTS = {
   math: { name: '數學', icon: '🔢' },
@@ -94,6 +95,8 @@ export const PACKS = [
   {
     id: 'g1a-math', grade: 1, subject: 'math', semester: 'a', label: '上學期',
     load: () => import('./math/g1a/index.js'),
+    // 「下載教材」時一併快取的教材圖（public/emoji/），清單由 src/engine/emoji-map.js 產生。
+    assets: packEmojiAssets(),
     chapters: [
       { name: '一、10 以內的數', units: ['num10'] },
       { name: '二、比長短', units: ['line', 'curve', 'thick', 'align'], review: 'review-length' },

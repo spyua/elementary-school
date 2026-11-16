@@ -36,7 +36,8 @@ export default defineConfig({
       },
       workbox: {
         // 只預先快取 App 外殼；學期包與 emoji 圖檔等用到（或按「下載教材」）時才存起來。
-        globPatterns: ['index.html', '**/*.css', 'assets/main-*.js', 'sfx/*.mp3', 'icons/*'],
+        // ui/*.svg 是所有學期包共用的引擎圖（吉祥物、星星、獎盃），跟外殼一起預先快取。
+        globPatterns: ['index.html', '**/*.css', 'assets/main-*.js', 'sfx/*.mp3', 'icons/*', 'ui/*.svg'],
         runtimeCaching: [
           {
             urlPattern: ({ url, sameOrigin }) => sameOrigin && /\/assets\/[^/]+\.js$/.test(url.pathname),

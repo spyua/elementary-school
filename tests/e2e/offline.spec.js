@@ -70,6 +70,25 @@ test('打開過的單元離線後重新整理，第一個場景仍能播放', as
   await playFirstScene();
 });
 
+test('下載「一年級 數學」後離線：教材圖（emoji/）與引擎共用圖（ui/）都從快取讀得到', async ({ page, context }) => {
+  test.setTimeout(180_000);
+  await installServiceWorker(page);
+  await page.reload();
+  const box = page.locator('#offlineBox');
+  await box.getByLabel('一年級 數學').check();
+  await box.locator('button', { hasText: '下載' }).click();
+  await expect(box.locator('.offline-status')).toContainText('✅ 可以離線使用了', { timeout: 60_000 });
+
+  await context.setOffline(true);
+  // ui/ 由 Workbox 預先快取；emoji/ 由「下載教材」逐一抓取後存進 emoji 快取。
+  const result = await page.evaluate(async paths => Promise.all(paths.map(async p => {
+    const res = await fetch(p);
+    const text = await res.text();
+    return { p, ok: res.ok, svg: text.includes('<svg') };
+  })), ['/emoji/rabbit-face.svg', '/emoji/castle.svg', '/ui/mascot.svg', '/ui/trophy.svg']);
+  for (const r of result) expect(r, r.p).toEqual({ p: r.p, ok: true, svg: true });
+});
+
 test('離線、沒下載過的單元顯示提示；下載「一年級 英文」後離線也能用', async ({ page, context }) => {
   test.setTimeout(180_000);
   await fakeSpeech(page);
