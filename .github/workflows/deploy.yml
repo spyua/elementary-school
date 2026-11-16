@@ -1,0 +1,60 @@
+# 建置、測試並部署到 GitHub Pages。
+# e2e 測試用根目錄 / 建置（playwright.config.js 的 webServer 會自己建置），
+# 全部測試通過後，才用 BASE_PATH=/<儲存庫名稱>/ 重新建置正式版。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 同一時間只部署一次；新的推送進來時，不中斷正在進行的部署。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 單元測試，包含隱私檢查。
+      - run: npm test
+
+      - run: npx playwright install --with-deps chromium
+
+      # private/ 不在儲存庫裡，對照測試與舊檔基準會自動略過。
+      - run: npx playwright test
+
+      - name: Build for GitHub Pages
+        run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

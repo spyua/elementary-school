@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// base 路徑在 Task 13 部署到 GitHub Pages 時再依儲存庫名稱調整。
-const BASE = './';
+// 本機與 e2e 測試用根目錄 /；部署到 GitHub Pages 時由 CI 設定 BASE_PATH=/<儲存庫名稱>/。
+const BASE = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base: BASE,
