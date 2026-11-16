@@ -92,7 +92,9 @@ describe.each(KEYS)('%s', type => {
         expect(typeof item.fill, tag).toBe('function');
       }
     }
-  });
+    // 時鐘題畫圖比較重，200 個種子單獨跑約 4 秒，貼近預設的 5 秒上限；
+    // 電腦忙碌時（例如同時跑 e2e、CI）會逾時，所以放寬到 30 秒。
+  }, 30000);
 
   test('同一個種子建兩次結果相同；中間有 Date.now 變化也不影響', () => {
     for (const seed of [3, 99, 2026, 4294967295]) {
