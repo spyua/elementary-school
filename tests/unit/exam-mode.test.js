@@ -99,3 +99,32 @@ test('reviewExamItem：同一個種子重建同一題，孩子的答案灰色、
   expect(answerIdx).not.toBe(Number(Object.keys(entry.given)[0]));
   expect(document.querySelector('#sub').textContent).toBe('我們一起看看為什麼。');
 }, 10000);
+
+test('beforeItem 播完才出題；crumb 取代預設進度點；中性動作依題號輪流', async () => {
+  let release;
+  const calls = [];
+  const acts = [];
+  const onAns = e => acts.push(e.detail);
+  window.addEventListener('lesson:answer', onAns);
+  const paper = [{ type: 'tPick3', seed: 1, zone: 0 }, { type: 'tPick3', seed: 2, zone: 0 }];
+  startPractice({
+    title: '考試', unitId: null, queue: paper.map(q => q.type),
+    exam: {
+      paper, onAnswered() {}, onEnd() {},
+      beforeItem: i => { calls.push(['before', i]); return new Promise(r => { release = r; }); },
+      crumb: i => { calls.push(['crumb', i]); document.querySelector('#crumb').textContent = `站${i}`; },
+      onItem: i => calls.push(['item', i]),
+    },
+  });
+  // 開場還沒播完：題目還沒畫、按鈕列是空的
+  expect(calls).toEqual([['before', 0]]);
+  expect(barLabels()).toEqual([]);
+  release();
+  await new Promise(r => setTimeout(r, 0));
+  expect(calls).toEqual([['before', 0], ['crumb', 0], ['item', 0]]);
+  expect(document.querySelector('#crumb').textContent).toBe('站0');
+  expect(document.querySelectorAll('#crumb .dot')).toHaveLength(0);
+  window.__T.answer(true);
+  window.removeEventListener('lesson:answer', onAns);
+  expect(acts).toEqual([{ neutral: true, act: 'nod' }]);
+});

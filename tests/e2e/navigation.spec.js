@@ -63,6 +63,42 @@ test('沒有內容的年級與科目顯示「準備中」且不能點', async ({
   await expect(page.locator('.subject-card.soon', { hasText: '自然' })).toContainText('準備中');
 });
 
+test('學期畫面依期中、期末分組，組尾有考試卡；點期中考卡進入考試', async ({ page }) => {
+  await page.goto(SEMESTER);
+  const terms = page.locator('.grid h3.term');
+  await expect(terms).toHaveCount(2);
+  await expect(terms.nth(0)).toHaveText('📝 期中考範圍・第一～五章');
+  await expect(terms.nth(1)).toHaveText('📝 期末考範圍・第六～九章');
+  const exams = page.locator('a.unit.exam');
+  await expect(exams).toHaveCount(2);
+  await expect(exams.nth(0)).toContainText('期中考');
+  await expect(exams.nth(1)).toContainText('期末考');
+  // 順序：期中考卡在「認識形狀」之後、期末考標題之前；期末考卡在最後（全冊總複習之後）
+  const order = await page.evaluate(() => [...document.querySelectorAll('.grid > *')].map(e =>
+    e.classList.contains('term') ? 'T:' + e.dataset.term : e.classList.contains('exam') ? 'X:' + e.querySelector('.nm').textContent
+      : e.classList.contains('unit') ? 'U:' + e.querySelector('.nm').textContent : 'C'));
+  const at = k => order.indexOf(k);
+  expect(at('T:mid')).toBe(0);
+  expect(at('U:認識形狀')).toBeLessThan(at('X:期中考'));
+  expect(at('X:期中考')).toBeLessThan(at('T:final'));
+  expect(at('T:final')).toBeLessThan(at('U:10以內的加法'));
+  expect(at('U:全冊總複習')).toBeLessThan(at('X:期末考'));
+  expect(order[order.length - 1]).toBe('X:期末考');
+  // 給爸媽區有考試說明
+  await expect(page.locator('details.parent')).toContainText('作答時不會顯示對錯');
+  await exams.nth(0).click();
+  await expect(page).toHaveURL(/#\/g1\/math\/a\/exam-mid$/);
+  await expect(page.locator('#startOv')).toBeVisible();
+  await expect(page.locator('#stTxt')).toContainText('期中考');
+});
+
+test('英文試玩的學期畫面沒有期中、期末分組', async ({ page }) => {
+  await page.goto('/#/g1/english/demo');
+  await expect(page.locator('a.unit', { hasText: '認識英文單字' })).toBeVisible();
+  await expect(page.locator('h3.term')).toHaveCount(0);
+  await expect(page.locator('a.unit.exam')).toHaveCount(0);
+});
+
 test('學期畫面的「給爸媽」區有每個單元的提示與課綱代碼', async ({ page }) => {
   await page.goto(SEMESTER);
   const parent = page.locator('details.parent');

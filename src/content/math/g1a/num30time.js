@@ -26,7 +26,7 @@ function d_track(x0,y0,from,to,cols=10,cw=64,ch=52,hidden=[]){const cells={};for
 const d_tl=(h,m)=>`${h} 點${m?'半':'鐘'}`;
 const d_next=h=>h%12+1;
 // 時鐘：影子、彩色外框、白色鐘面、粗刻度。注意：鐘面數字是 <text>，「哪個比較早」場景會用 querySelectorAll('text') 找標籤，所以這裡不新增 <text>。
-function d_clock(p,cx,cy,r,h,m){const g=el('g',{},p),rim=Math.max(5,r*.09);
+export function d_clock(p,cx,cy,r,h,m){const g=el('g',{},p),rim=Math.max(5,r*.09);
   el('circle',{cx,cy:cy+r*.05,r:r+rim*.6,fill:'rgba(61,44,30,.12)'},g);
   el('circle',{cx,cy,r:r+rim*.5,fill:'#ff8c42'},g);el('circle',{cx,cy,r:r+rim*.5,fill:'none',stroke:'#ffbe0b','stroke-width':rim*.35,opacity:.8},g);
   el('circle',{cx,cy,r,fill:'#fff',stroke:'#3d2c1e','stroke-width':Math.max(3,r*.045)},g);

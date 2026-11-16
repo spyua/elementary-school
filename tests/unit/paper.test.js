@@ -1,7 +1,7 @@
 // 出卷：藍圖檢查與 buildPaper。
 import { validateBlueprint, buildPaper } from '../../src/engine/paper.js';
 import { mulberry32 } from '../../src/engine/rng.js';
-import { MID_BLUEPRINT, FINAL_BLUEPRINT } from '../../src/content/math/g1a/exam.js';
+import { MID_BLUEPRINT, FINAL_BLUEPRINT, EXAM_TYPES } from '../../src/content/math/g1a/exam.js';
 
 const BPS = { mid: MID_BLUEPRINT, final: FINAL_BLUEPRINT };
 
@@ -45,6 +45,31 @@ for (const [name, bp] of Object.entries(BPS)) {
     });
   });
 }
+
+test('完整藍圖：期中 5 區 × 4 題、期末 4 區 × 5 題；每區都有名稱、主題圖、收集物', () => {
+  expect(MID_BLUEPRINT.zones.map(z => z.slots.length)).toEqual([4, 4, 4, 4, 4]);
+  expect(FINAL_BLUEPRINT.zones.map(z => z.slots.length)).toEqual([5, 5, 5, 5]);
+  for (const bp of [MID_BLUEPRINT, FINAL_BLUEPRINT]) {
+    expect(bp.adventure).toBeTruthy();
+    for (const z of bp.zones) {
+      expect(z.name).toBeTruthy();
+      expect(z.icon).toMatch(/^[a-z-]+$/);
+      expect(z.collect).toBeTruthy();
+    }
+  }
+  // 14 個考試專用題型都放進藍圖（期中、期末合計）
+  const all = new Set([MID_BLUEPRINT, FINAL_BLUEPRINT].flatMap(bp => bp.zones.flatMap(z => z.slots.flat())));
+  for (const k of Object.keys(EXAM_TYPES)) expect(all.has(k), k).toBe(true);
+});
+
+test('跑 500 份：藍圖裡每個題型都至少出現過一次', () => {
+  for (const bp of [MID_BLUEPRINT, FINAL_BLUEPRINT]) {
+    const seen = new Set();
+    for (let s = 1; s <= 500; s++) for (const q of buildPaper(bp, mulberry32(s))) seen.add(q.type);
+    const missing = [...new Set(bp.zones.flatMap(z => z.slots.flat()))].filter(t => !seen.has(t));
+    expect(missing, bp.key).toEqual([]);
+  }
+});
 
 test('同一份考卷裡，還有沒挑過的題型時不會重複', () => {
   const bp = { zones: [{ slots: Array.from({ length: 20 }, () => ['a', 'b', 'c']) }] };

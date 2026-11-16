@@ -230,3 +230,52 @@ details.offline summary{font-weight:900;font-size:19px;cursor:pointer}
   #bar #examOk{animation:none}
   #bar .num.sel{transform:none}
 }
+
+/* ===== 考試的冒險主題（src/engine/exam.js）與學期畫面分組 ===== */
+/* 學期畫面：期中、期末分組的大標題與組尾的考試卡 */
+.term{grid-column:1/-1;margin:22px 0 0;padding:12px 18px;border-radius:var(--r-md);font-size:clamp(21px,3.6vw,26px);font-weight:900;color:#fff;background:linear-gradient(90deg,var(--accent),#ffb347);box-shadow:var(--lift-md)}
+.term[data-term="final"]{background:linear-gradient(90deg,#3a86ff,#7cc6ff)}
+.unit.exam{background:linear-gradient(135deg,#fff6d6,#ffe1b3);outline:3px dashed var(--yellow);outline-offset:-8px;min-height:120px}
+.unit.exam .nm{font-size:24px}
+
+/* 地圖進度列：20 站，吉祥物站在目前這一站；換區時多一點空隙 */
+#crumb.exMap{gap:5px;min-height:40px;padding-top:30px}
+#crumb.exMap .station{position:relative;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--zc,var(--edge));box-sizing:border-box;flex:none}
+#crumb.exMap .station.zstart{margin-left:12px}
+#crumb.exMap .station.done{background:var(--zc,var(--dot-done))}
+#crumb.exMap .station.on{background:var(--yellow);border-color:var(--yellow);transform:scale(1.2)}
+#crumb.exMap .stMascot{position:absolute;left:50%;bottom:12px;width:28px;height:28px;margin-left:-14px;pointer-events:none;animation:hop .5s ease-out}
+
+/* 每題開場：蓋在 #stage 上，點一下就略過 */
+#examIntro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:radial-gradient(circle at 50% 45%,#fffdf5 0 35%,rgba(255,248,231,.96) 70%);cursor:pointer;animation:fadein .2s ease-out both}
+#examIntro .exIntroIcon{width:clamp(90px,18vw,140px);height:clamp(90px,18vw,140px);animation:pop .45s ease-out both}
+#examIntro .exIntroNo{font-size:clamp(34px,7vw,56px);font-weight:900;color:var(--zc,var(--accent));animation:pop .45s ease-out .12s both}
+#examIntro .exIntroZone{font-size:clamp(18px,3.4vw,24px);font-weight:700;color:var(--ink-soft)}
+#examIntro .exIntroMascot{position:absolute;left:8%;bottom:8%;width:clamp(56px,10vw,84px);height:auto;animation:hop .5s ease-out .25s both}
+
+/* 背包：#stage 右上角，不擋點擊 */
+#examBag{position:absolute;top:6px;right:8px;z-index:4;display:flex;align-items:center;gap:2px;padding:2px 8px 2px 4px;border-radius:999px;background:rgba(255,255,255,.85);box-shadow:0 2px 0 var(--edge);pointer-events:none;font-weight:900;color:var(--accent);font-size:20px}
+#examBag img{width:36px;height:36px}
+#examBag.hop{animation:hop .42s ease-out}
+.exFly{position:absolute;z-index:4;width:48px;height:48px;left:50%;top:45%;margin:-24px 0 0 -24px;pointer-events:none;animation:exFly .7s cubic-bezier(.5,-.3,.7,1) forwards}
+@keyframes exFly{0%{left:50%;top:45%;transform:scale(.4)}25%{transform:scale(1.2)}100%{left:calc(100% - 40px);top:26px;transform:scale(.5);opacity:.6}}
+
+/* 封面地圖：小路像用筆畫出來 */
+.mapRoad{stroke-dasharray:100;stroke-dashoffset:100;animation:mapRoad 1.4s ease-out forwards}
+@keyframes mapRoad{to{stroke-dashoffset:0}}
+.mapMascot{transform-box:fill-box;transform-origin:center bottom;animation:hop .6s ease-out .9s 2}
+
+/* 吉祥物的中性動作（考試送出後依題號輪流）：比讚、收卡片 */
+#mascot.thumb{animation:mthumb .6s ease-in-out}
+#mascot.card{animation:mcard .6s ease-in-out}
+@keyframes mthumb{0%,100%{transform:scale(1) rotate(0)}40%{transform:scale(1.12) rotate(6deg)}}
+@keyframes mcard{0%,100%{transform:translateX(0)}40%{transform:translateX(-6px) rotate(-6deg)}70%{transform:translateX(3px)}}
+
+/* 「減少動態效果」：地圖不畫線、不跳，開場只淡入，收集物不飛 */
+@media (prefers-reduced-motion:reduce){
+  .mapRoad{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+  .mapMascot,#crumb.exMap .stMascot,#examBag.hop,#examIntro .exIntroMascot{animation:none}
+  #examIntro .exIntroIcon,#examIntro .exIntroNo{animation:fadein .25s ease-out both}
+  #crumb.exMap .station.on{transform:none}
+  .exFly{display:none}
+}

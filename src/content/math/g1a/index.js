@@ -9,11 +9,13 @@ import { unitNum10, unitOrder, TYPES as NUMBER_TYPES } from './numbers.js';
 import { unitShape, TYPES as SHAPE_TYPES } from './shapes.js';
 import { unitAdd, unitSub, TYPES as ADDSUB_TYPES } from './addsub.js';
 import { unitNum30, unitTime, TYPES as NUM30TIME_TYPES } from './num30time.js';
-import { MID_BLUEPRINT, FINAL_BLUEPRINT } from './exam.js';
+import { MID_BLUEPRINT, FINAL_BLUEPRINT, EXAM_TYPES } from './exam.js';
 
 for (const types of [LENGTH_TYPES, SPLIT_TYPES, NUMBER_TYPES, SHAPE_TYPES, ADDSUB_TYPES, NUM30TIME_TYPES]) {
   registerTypes(types);
 }
+// 考試專用題型：只登記到題型表給考試藍圖用，不加進任何單元的 practice 陣列。
+registerTypes(EXAM_TYPES);
 
 // 順序和舊檔 UNITS 相同；review-all 依這個順序合併題型，亂數結果才會和舊檔一致。
 const bodies = {

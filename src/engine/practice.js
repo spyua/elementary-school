@@ -57,7 +57,8 @@ export function judge(item,marks){
 let P=null,item=null,marks={},tool='v',regs=[],layer={},sel=null;
 /**
  * cfg: { title, types?, count?, queue?, unitId?, exam? }；unitId 是單元固定 ID，再練一次時為 null。
- * exam（考試模式，由 exam.js 傳入）：{ paper: [{type,seed,zone}], onItem?(i), onAnswered(entry), onEnd(log) }。
+ * exam（考試模式，由 exam.js 傳入）：{ paper: [{type,seed,zone}], beforeItem?(i,id), crumb?(i), onItem?(i), onAnswered(entry), onEnd(log) }。
+ *   beforeItem 在出題前 await（封面、休息站、每題開場）；crumb 取代預設的進度點。
  * 沒有 exam 時，練習的每一行程式都和原本一樣（對照測試靠這點）。
  */
 export function startPractice(cfg){const st=$('#stage');if(st)st.dataset.mode=cfg.exam?'exam':'practice';P={cfg,i:0,correct:0,wrong:[],log:[],queue:cfg.queue||makeQueue(cfg.types,cfg.count)};enterLesson();$('#nav').classList.add('hidden');nextItem();}
@@ -68,7 +69,11 @@ function updScore(){$('#score').textContent=P.cfg.exam?'':`⭐ ${P.correct}`;}
 function renderCrumbP(){const c=$('#crumb');c.innerHTML='';for(let i=0;i<P.queue.length;i++){const d=document.createElement('div');d.className='dot'+(i===P.i?' on':i<P.i?' done':'');c.appendChild(d);}}
 async function nextItem(){S.runId++;const id=S.runId;stopSpeech();clear();clearBar();
   if(P.i>=P.queue.length)return P.cfg.exam?P.cfg.exam.onEnd(P.log):practiceEnd(id);
-  renderCrumbP();updScore();$('#stTxt').textContent=`${P.cfg.title}　第 ${P.i+1}/${P.queue.length} 題`;
+  // 考試：出題前先播 exam.js 的封面、休息站與每題開場，播完才出題；地圖進度列也交給 exam.js 畫。
+  if(P.cfg.exam){if(P.cfg.exam.beforeItem){try{await P.cfg.exam.beforeItem(P.i,id);}catch(e){if(e!==ABORT)console.error(e);return;}if(id!==S.runId)return;}
+    if(P.cfg.exam.crumb)P.cfg.exam.crumb(P.i);else renderCrumbP();}
+  else renderCrumbP();
+  updScore();$('#stTxt').textContent=`${P.cfg.title}　第 ${P.i+1}/${P.queue.length} 題`;
   const ex=P.cfg.exam;
   const make=()=>{item=GEN[P.queue[P.i]]();item.type=P.queue[P.i];marks={};tool='v';sel=null;
     regs=item.draw();};
@@ -145,12 +150,14 @@ function examReady(ready,id){let b=$('#examOk');
  * 不畫正解、不說稱讚語、不播講解。作答紀錄只放在記憶體（P.log 與 exam.js），不存檔。
  */
 export const EXAM_ACK='收到！';
+const NEUTRAL_ACTS=['nod','thumb','card'];
 async function examSubmit(ok,id){const ex=P.cfg.exam,q=ex.paper[P.i];
   if(ok)P.correct++;else P.wrong.push(item.type);
   const entry={n:P.i+1,type:item.type,seed:q.seed,zone:q.zone,given:{...marks},ok};
   P.log.push(entry);ex.onAnswered(entry);
   if(layer.hit)layer.hit.remove();
-  playSfx('tap');window.dispatchEvent(new CustomEvent('lesson:answer',{detail:{neutral:true}}));
+  // 吉祥物的中性動作只依題號輪流（點頭、比讚、收卡片），和對錯無關
+  playSfx('tap');window.dispatchEvent(new CustomEvent('lesson:answer',{detail:{neutral:true,act:NEUTRAL_ACTS[P.i%3]}}));
   stopSpeech();subEl.textContent=EXAM_ACK;speakOne(EXAM_ACK);
   await wait(900,id);P.i++;nextItem();}
 

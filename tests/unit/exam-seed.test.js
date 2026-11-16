@@ -2,7 +2,7 @@
 // 這裡檢查兩份藍圖用到的每個題型，同一個種子建兩次，題目、答案、畫面都完全相同。
 import { DOM } from './helpers/lesson-dom.js';
 
-let GEN, withSeed, clear, svg, MID_BLUEPRINT, FINAL_BLUEPRINT, validateBlueprint;
+let GEN, withSeed, clear, svg, MID_BLUEPRINT, FINAL_BLUEPRINT, EXAM_TYPES, validateBlueprint;
 
 beforeAll(async () => {
   document.body.innerHTML = DOM;
@@ -11,7 +11,7 @@ beforeAll(async () => {
   ({ clear, svg } = await import('../../src/engine/svg.js'));
   ({ validateBlueprint } = await import('../../src/engine/paper.js'));
   await import('../../src/content/math/g1a/index.js');
-  ({ MID_BLUEPRINT, FINAL_BLUEPRINT } = await import('../../src/content/math/g1a/exam.js'));
+  ({ MID_BLUEPRINT, FINAL_BLUEPRINT, EXAM_TYPES } = await import('../../src/content/math/g1a/exam.js'));
 });
 
 function build(type, seed) {
@@ -30,7 +30,9 @@ test('兩份藍圖的題型都登記過', () => {
 
 test('同一個種子建兩次，prompt、answer、#svg 內容都相同', () => {
   const types = [...new Set([MID_BLUEPRINT, FINAL_BLUEPRINT].flatMap(bp => bp.zones.flatMap(z => z.slots.flat())))];
-  expect(types.length).toBeGreaterThan(30);
+  expect(types.length).toBeGreaterThan(40);
+  // 14 個考試專用題型都在藍圖裡，所以也都會被這個測試檢查到
+  for (const k of Object.keys(EXAM_TYPES)) expect(types, k).toContain(k);
   for (const type of types) {
     for (const seed of [1, 42, 123456789, 4294967295]) {
       const a = build(type, seed);

@@ -62,6 +62,31 @@ test('g1a-math 有期中考、期末考，固定 ID 不變，findUnit 找得到'
   expect(findUnit(findPack(1, 'english', 'demo'), 'exam-mid')).toBeUndefined();
 });
 
+test('g1a-math 章節分成期中、期末範圍，組尾的考試都找得到', () => {
+  const p = findPack(1, 'math', 'a');
+  for (const ch of p.chapters) expect(['mid', 'final'], ch.name).toContain(ch.term);
+  expect(p.chapters.slice(0, 5).map(c => c.term)).toEqual(['mid', 'mid', 'mid', 'mid', 'mid']);
+  expect(p.chapters.slice(5).every(c => c.term === 'final')).toBe(true);
+  expect(p.chapters.find(c => c.review === 'review-all').term).toBe('final');
+  expect(p.terms.map(t => t.key)).toEqual(['mid', 'final']);
+  for (const t of p.terms) {
+    expect(p.exams.map(x => x.key), t.key).toContain(t.exam);
+    expect(t.name).toContain(t.key === 'mid' ? '期中考範圍' : '期末考範圍');
+  }
+  expect(p.terms.map(t => t.range)).toEqual(['第一～五章', '第六～九章']);
+  // 每個章節都有歸屬的分組
+  const keys = new Set(p.terms.map(t => t.key));
+  for (const ch of p.chapters) expect(keys.has(ch.term), ch.name).toBe(true);
+  // 給爸媽的作答小提醒有考試說明
+  expect(p.parentGuide.reminders.items.some(t => t.includes('不會顯示對錯'))).toBe(true);
+});
+
+test('沒有 terms 的學期包（英文試玩）章節也沒有 term', () => {
+  const p = findPack(1, 'english', 'demo');
+  expect(p.terms).toBeUndefined();
+  for (const ch of p.chapters) expect(ch.term).toBeUndefined();
+});
+
 test('英文試玩包只有一個單元 G1-E-words', () => {
   const p = findPack(1, 'english', 'demo');
   expect(p).toMatchObject({ id: 'g1-english-demo', grade: 1, subject: 'english', semester: 'demo', label: '試玩', trial: true });

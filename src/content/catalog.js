@@ -104,17 +104,23 @@ export const PACKS = [
     load: () => import('./math/g1a/index.js'),
     // 「下載教材」時一併快取的教材圖（public/emoji/），清單由 src/engine/emoji-map.js 產生。
     assets: packEmojiAssets(),
+    // term：這一章屬於期中考（mid）還是期末考（final）的範圍。學期畫面依它分組。
     chapters: [
-      { name: '一、10 以內的數', units: ['num10'] },
-      { name: '二、比長短', units: ['line', 'curve', 'thick', 'align'], review: 'review-length' },
-      { name: '三、順序與多少', units: ['order'] },
-      { name: '四、分與合', units: ['split'] },
-      { name: '五、認識形狀', units: ['shape'] },
-      { name: '六、10 以內的加法', units: ['add'] },
-      { name: '七、10 以內的減法', units: ['sub'] },
-      { name: '八、30 以內的數', units: ['num30'] },
-      { name: '九、時間', units: ['time'] },
-      { name: '🏆 學習加油讚', units: [], review: 'review-all' },
+      { name: '一、10 以內的數', units: ['num10'], term: 'mid' },
+      { name: '二、比長短', units: ['line', 'curve', 'thick', 'align'], review: 'review-length', term: 'mid' },
+      { name: '三、順序與多少', units: ['order'], term: 'mid' },
+      { name: '四、分與合', units: ['split'], term: 'mid' },
+      { name: '五、認識形狀', units: ['shape'], term: 'mid' },
+      { name: '六、10 以內的加法', units: ['add'], term: 'final' },
+      { name: '七、10 以內的減法', units: ['sub'], term: 'final' },
+      { name: '八、30 以內的數', units: ['num30'], term: 'final' },
+      { name: '九、時間', units: ['time'], term: 'final' },
+      { name: '🏆 學習加油讚', units: [], review: 'review-all', term: 'final' },
+    ],
+    // 學期畫面的兩個分組：標題、範圍，以及放在組尾的考試卡（exam 是 exams 裡的 key）。
+    terms: [
+      { key: 'mid', name: '📝 期中考範圍', range: '第一～五章', exam: 'exam-mid' },
+      { key: 'final', name: '📝 期末考範圍', range: '第六～九章', exam: 'exam-final' },
     ],
     // 學期畫面上方的說明，與底部「給爸媽」區的共通內容。Task 7 的學期畫面會顯示它們。
     // 文字改寫自舊檔：不提特定課本版本與測驗卷（版本對照放在各單元的 versions）。
@@ -131,6 +137,7 @@ export const PACKS = [
         items: [
           '看到「打✓…畫○…」的題目，先用手指指著題目唸一次，確認兩件事都做到。',
           '每次 10～15 分鐘就好，錯的題目用「錯的再練一次」複習。',
+          '期中考、期末考各 20 題、100 分。作答時不會顯示對錯，交卷後再一起看錯的題目和講解。分數只存在這台裝置，不會上傳。',
         ],
       },
     },

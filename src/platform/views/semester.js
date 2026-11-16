@@ -1,4 +1,5 @@
 // 學期畫面：依章節列出單元卡與總複習卡，底部是「給爸媽」區。
+// 有 terms 的學期包（例如一上數學）先依期中、期末分成兩組，每組有大標題，組尾放一張考試卡。
 // 課綱代碼與課本章名只放在「給爸媽」區，不出現在孩子看的單元卡上。
 import { SUBJECTS, findPack, findUnit } from '../../content/catalog.js';
 import { formatRoute } from '../router.js';
@@ -15,6 +16,29 @@ function unitCard(pack, meta, state, isReview) {
     h('div', { className: 'nm' }, isReview ? meta.title : meta.name),
     h('div', { className: 'ds' }, meta.desc),
     h('div', { className: 'st' }, stars(getStars(state, meta.id))));
+}
+
+/* 考試卡：圖示 📝，顯示星星；樣式用 unit exam。 */
+function examCard(pack, meta, state) {
+  const href = formatRoute({ view: 'unit', grade: pack.grade, subject: pack.subject, semester: pack.semester, key: meta.key });
+  return h('a', { className: 'unit exam', href },
+    h('div', { className: 'ic' }, meta.icon || '📝'),
+    h('div', { className: 'nm' }, meta.title),
+    h('div', { className: 'ds' }, meta.desc),
+    h('div', { className: 'st' }, stars(getStars(state, meta.id))));
+}
+
+/* 一章的標題、單元卡與總複習卡。 */
+function appendChapter(grid, pack, ch, state) {
+  if (ch.name) grid.append(h('h3', { className: 'chap' }, ch.name));
+  for (const key of ch.units) {
+    const meta = findUnit(pack, key);
+    if (meta) grid.append(unitCard(pack, meta, state, false));
+  }
+  if (ch.review) {
+    const meta = findUnit(pack, ch.review);
+    if (meta) grid.append(unitCard(pack, meta, state, true));
+  }
 }
 
 function chaptersOf(pack) {
@@ -56,16 +80,16 @@ export function render(container, ctx, route) {
   if (pack.intro) nodes.push(h('div', { className: 'intro' }, pack.intro));
 
   const grid = h('div', { className: 'grid' });
-  for (const ch of chaptersOf(pack)) {
-    if (ch.name) grid.append(h('h3', { className: 'chap' }, ch.name));
-    for (const key of ch.units) {
-      const meta = findUnit(pack, key);
-      if (meta) grid.append(unitCard(pack, meta, ctx.state, false));
+  if (pack.terms && pack.terms.length) {
+    // 依期中、期末分組：大標題 → 該組的章節 → 考試卡
+    for (const term of pack.terms) {
+      grid.append(h('h3', { className: 'term', 'data-term': term.key }, `${term.name}・${term.range}`));
+      for (const ch of chaptersOf(pack).filter(c => c.term === term.key)) appendChapter(grid, pack, ch, ctx.state);
+      const meta = term.exam && findUnit(pack, term.exam);
+      if (meta) grid.append(examCard(pack, meta, ctx.state));
     }
-    if (ch.review) {
-      const meta = findUnit(pack, ch.review);
-      if (meta) grid.append(unitCard(pack, meta, ctx.state, true));
-    }
+  } else {
+    for (const ch of chaptersOf(pack)) appendChapter(grid, pack, ch, ctx.state);
   }
   nodes.push(grid, parentBox(pack));
   container.replaceChildren(...nodes);
