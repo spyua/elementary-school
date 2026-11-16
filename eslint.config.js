@@ -14,6 +14,8 @@ export default [
     rules: {
       'no-undef': 'error',
       'no-unused-vars': 'warn',
+      // 中文介面文字常用全形空白（U+3000）排版，字串與樣板字串裡允許出現。
+      'no-irregular-whitespace': ['error', { skipStrings: true, skipTemplates: true }],
     },
   },
   {
