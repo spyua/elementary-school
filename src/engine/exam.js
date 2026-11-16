@@ -12,7 +12,7 @@
 // 隱私：作答紀錄（哪題錯、孩子選了什麼）只放在記憶體的 X 裡，離開考試就丟掉。
 // 唯一會存進瀏覽器的是星星數（hooks.onResult，和練習相同）。
 import { ABORT, S } from './state.js';
-import { $, shuffle } from './util.js';
+import { $ } from './util.js';
 import { say, stopSpeech, subEl } from './speech.js';
 import { el, txt, clear } from './svg.js';
 import { clearBar, button, askChoice } from './ui.js';
@@ -419,7 +419,8 @@ function resultBar(x) {
       closeExam();
       startPractice({
         title: '錯題練習', types: [...new Set(wrongTypes)],
-        queue: shuffle(wrongTypes.concat(wrongTypes)).slice(0, Math.max(3, wrongTypes.length)), unitId: null,
+        // 交給 makeQueue 重複題型直到湊滿題數；只錯 1 題時也會出 3 題。
+        count: Math.max(3, wrongTypes.length), unitId: null,
       });
     });
   }

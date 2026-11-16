@@ -118,7 +118,8 @@ test.describe('考試', () => {
       .some(e => e.getAttribute('stroke') === g || e.getAttribute('fill') === g), GREEN, { timeout: 10_000 });
     await page.waitForFunction(() => {
       const t = document.querySelector('#sub').textContent;
-      return t === '我們一起看看為什麼。' || t.startsWith('正確答案是');
+      // 數字題會先說孩子填了多少：「你填的是 X，正確答案是 N。…」
+      return t === '我們一起看看為什麼。' || /^(你填的是 \d+，)?正確答案是/.test(t);
     }, null, { timeout: 10_000 });
     const intro = await page.locator('#sub').textContent();
     // 字幕換成講解的內容（講解在播）

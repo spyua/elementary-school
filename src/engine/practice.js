@@ -179,7 +179,9 @@ export async function reviewExamItem(entry,id){
     (item.mode==='pick'?[item.answer]:item.answer).forEach(i=>markShape(regs[i],'ring',OK,sol));}
   else if(item.mode==='dual'){for(const k in given)markShape(regs[k],given[k],GRAY,layer.marks);markShape(regs[item.answer.v],'v',OK,sol);markShape(regs[item.answer.o],'o',OK,sol);}
   else{for(const k in given)markShape(regs[k],given[k],GRAY,layer.marks);item.answer.forEach((a,i)=>{if(given[i]!==a)markShape(regs[i],a,OK,sol);});}
-  await say(item.mode==='num'?`正確答案是 ${item.answer}。我們一起看看。`:'我們一起看看為什麼。',id);
+  // 數字題只有一個答案格，灰色的孩子答案會被綠色正解蓋掉，所以用語音和字幕再說一次孩子填了多少。
+  const yours=item.mode==='num'&&given.val!==undefined?`你填的是 ${given.val}，`:'';
+  await say(item.mode==='num'?`${yours}正確答案是 ${item.answer}。我們一起看看。`:'我們一起看看為什麼。',id);
   if(item.moves){await wait(700,id);sol.remove();layer.marks.remove();layer.paren.remove();}
   await item.explain(id);}
 
