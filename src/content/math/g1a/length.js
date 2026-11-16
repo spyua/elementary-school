@@ -93,10 +93,10 @@ export const unitLine={practice:['classify'],
    await say('這些都是彎彎的線，叫做曲線。',id);await drawIn(a,700,id);await drawIn(w,700,id);await drawIn(c,1000,id);
    await say('像彩虹、像毛線、像捲捲的麵條，都是曲線。',id);
    ruler(90,176,260);await say('尺放上去貼不緊，彎彎的，就是曲線。',id);}},
- {title:'考卷會這樣考',async run(id){
+ {title:'容易搞錯的題目',async run(id){
    const r1={mx:220,my:330},r2={mx:580,my:330};
    mkLine([[110,160],[330,240]],'#555');mkLine(gen(SH.wave(1),470,200,220,60),'#555');paren(r1);paren(r2);
-   await say('考卷常常這樣說：是直線的打勾，是曲線的畫圈。',id);
+   await say('題目常常這樣說：是直線的打勾，是曲線的畫圈。',id);
    markShape(r1,'v','#e63946');await say('這條是直直的，是直線，打勾。',id);
    markShape(r2,'o','#e63946');await say('這條是彎彎的，是曲線，畫圈。',id);
    await say('接下來換你練習！',id);}}

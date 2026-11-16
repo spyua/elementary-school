@@ -10,8 +10,11 @@ const STEP_MS = 250;
 // 空白或全形空白（舊檔把字幕設成一個全形空白 U+3000 來清空）。
 const BLANK = /^[\s\u3000]*$/;
 
-/** 允許的文字差異（舊字串 → 新字串）。Task 5 填入。 */
-export const TEXT_CHANGES = [];
+/** 允許的文字差異（舊字串 → 新字串）：介面不提「考卷」（設計文件 5.11）。 */
+export const TEXT_CHANGES = [
+  ['考卷會這樣考', '容易搞錯的題目'],
+  ['考卷常常這樣說：是直線的打勾，是曲線的畫圈。', '題目常常這樣說：是直線的打勾，是曲線的畫圈。'],
+];
 
 /** 套用 TEXT_CHANGES，讓舊基準可以和新站的字幕直接比對。 */
 export function normalize(lines) {
