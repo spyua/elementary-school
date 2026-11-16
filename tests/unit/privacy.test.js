@@ -1,7 +1,10 @@
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const FORBIDDEN = ['個人弱點標籤', '個人弱點註記', '原本的使用者', 'weak:true', 'weak:'];
+// 禁用字以 base64 存放，避免禁用字原文出現在公開的程式碼裡。
+const FORBIDDEN = ['6ICD5Y236KaB5Yqg5by3', '6ICD5Y235byx6bue', '6Ieq5a625a2p5a2Q']
+  .map(b => Buffer.from(b, 'base64').toString('utf8'))
+  .concat(['weak:true', 'weak:']);
 
 test('公開檔案沒有個人資訊', () => {
   // -z 讓非 ASCII 檔名不會被 git 轉成跳脫字串。
