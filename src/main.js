@@ -25,6 +25,7 @@ const ctx = {
     state = next;
     saveState(state);
     updateHeader();
+    applySettings();
     // 單元畫面不重畫（動畫正在播）；其他畫面依新狀態重畫。
     if (current.view !== 'unit') showView(current);
   },
@@ -77,11 +78,24 @@ setPracticeHooks({
 $('#homeBtn').onclick = () => navigate(current.view === 'unit' ? semesterOf(current) : { view: 'home' });
 $('#profileBtn').onclick = () => navigate({ view: 'profiles' });
 $('#startBtn').onclick = unlockAudio;
-$('#mute').onclick = e => {
-  S.muted = !S.muted;
-  e.target.textContent = S.muted ? '🔇' : '🔊';
+// 朗讀（🔊）與音效（🎵）分開開關，狀態存在 state.settings，重新整理後不變。
+function applySettings() {
+  S.muted = state.settings.muted;
+  S.sfxMuted = state.settings.sfxMuted;
+  $('#mute').textContent = S.muted ? '🔇' : '🔊';
+  const sfx = $('#sfxBtn');
+  sfx.setAttribute('aria-pressed', String(!S.sfxMuted));
+  sfx.title = S.sfxMuted ? '音效：關' : '音效：開';
+}
+function toggleSetting(name) {
+  ctx.setState({ ...state, settings: { ...state.settings, [name]: !state.settings[name] } });
+}
+applySettings();
+$('#mute').onclick = () => {
+  toggleSetting('muted');
   if (S.muted) stopSpeech();
 };
+$('#sfxBtn').onclick = () => toggleSetting('sfxMuted');
 
 onRoute(route => {
   const token = ++routeToken;

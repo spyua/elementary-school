@@ -15,6 +15,7 @@ header{display:flex;align-items:center;gap:10px}
 header h1{flex:1;font-size:clamp(19px,3.4vw,28px);margin:4px 0;font-weight:900}
 .iconbtn{font-size:22px;border:none;background:#fff;border-radius:50%;width:48px;height:48px;box-shadow:0 3px 0 #e5d6b8;cursor:pointer;flex:none}
 .hidden{display:none!important}
+#sfxBtn[aria-pressed="false"]{opacity:.4}
 /* home */
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:12px 0}
 .unit{background:#fff;border:none;border-radius:22px;padding:18px 16px;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer;box-shadow:0 6px 0 var(--edge);transition:transform .1s}
@@ -99,7 +100,8 @@ nav button:disabled{opacity:.4;cursor:default}
   <header>
     <button class="iconbtn hidden" id="homeBtn" title="回首頁">🏠</button>
     <h1>📏 小學互動教室</h1>
-    <button class="iconbtn" id="mute" title="聲音開關">🔊</button>
+    <button class="iconbtn" id="mute" title="朗讀開關">🔊</button>
+    <button class="iconbtn" id="sfxBtn" title="音效開關" aria-pressed="true">🎵</button>
     <button class="iconbtn hidden" id="profileBtn" title="孩子檔案">🐣</button>
   </header>
 

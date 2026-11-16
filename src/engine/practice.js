@@ -7,6 +7,7 @@
 import { ABORT, S } from './state.js';
 import { $, pick, shuffle } from './util.js';
 import { subEl, say, wait, stopSpeech } from './speech.js';
+import { playSfx } from './sfx.js';
 import { el, txt, clear, paren, markShape } from './svg.js';
 import { bar, clearBar, button, enterLesson } from './ui.js';
 
@@ -63,7 +64,7 @@ async function check(id){if(item.done)return;
     let ok;if(item.mode==='num')ok=marks.val===item.answer;else if(item.mode==='pair')ok=item.isOk(Object.keys(marks).map(Number));else if(item.mode==='pick')ok=+Object.keys(marks)[0]===item.answer;
     else if(item.mode==='dual')ok=marks[item.answer.v]==='v'&&marks[item.answer.o]==='o';
     else ok=item.answer.every((a,i)=>marks[i]===a);
-    if(ok)P.correct++;else P.wrong.push(item.type);updScore();
+    if(ok)P.correct++;else P.wrong.push(item.type);updScore();playSfx(ok?'correct':'wrong');
     // show correct marks in green
     if(layer.hit)layer.hit.remove();const sol=el('g',{});
     if(item.mode==='num'){if(!ok)item.fill(item.answer,'#2bb673');}
@@ -79,6 +80,7 @@ async function check(id){if(item.done)return;
 async function practiceEnd(id){$('#crumb').innerHTML='';$('#stTxt').textContent='🏆 練習結果';const n=P.correct,t=P.queue.length;
   for(let i=0;i<Math.min(t,10);i++)txt(400-(Math.min(t,10)-1)*35+i*70,150,i<Math.round(n/t*Math.min(t,10))?'⭐':'☆',{'font-size':54,fill:'#d8c9a8',class:'svgtxt pop'});
   txt(400,270,`答對 ${n} / ${t} 題`,{'font-size':42,fill:'#e07a00'});
+  playSfx('star');
   if(P.cfg.unitId)hooks.onResult(P.cfg.unitId,Math.round(n/t*3));
   const wrong=[...new Set(P.wrong)];
   if(wrong.length){button('🔁 錯的再練一次','#ff8c42',()=>startPractice({title:'再練一次',types:wrong,queue:shuffle(P.wrong.concat(P.wrong).slice(0,Math.max(3,P.wrong.length))),unitId:null}));}

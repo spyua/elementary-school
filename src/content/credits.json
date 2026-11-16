@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Kenney Interface Sounds",
+    "url": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0-1.0",
+    "author": "Kenney (www.kenney.nl)",
+    "usage": "答對、答錯、得星、點擊音效（public/sfx/：correct ← confirmation_001、wrong ← error_006、star ← maximize_006、tap ← click_001，轉成 mp3）"
+  }
+]
