@@ -28,10 +28,22 @@ test('每種畫面都能轉回網址', () => {
 test('onRoute 啟動時先呼叫一次，navigate 會觸發 hashchange', async () => {
   window.location.hash = '';
   const seen = [];
-  onRoute(r => seen.push(r));
+  const off = onRoute(r => seen.push(r));
   expect(seen).toEqual([{ view: 'home' }]);
   navigate({ view: 'grade', grade: 1 });
   await new Promise(res => window.addEventListener('hashchange', res, { once: true }));
   expect(window.location.hash).toBe('#/g1');
   expect(seen.at(-1)).toEqual({ view: 'grade', grade: 1 });
+  off();
+});
+
+test('onRoute 回傳的函式可以解除監聽', async () => {
+  window.location.hash = '';
+  const seen = [];
+  const off = onRoute(r => seen.push(r));
+  expect(typeof off).toBe('function');
+  off();
+  navigate({ view: 'grade', grade: 1 });
+  await new Promise(res => window.addEventListener('hashchange', res, { once: true }));
+  expect(seen).toEqual([{ view: 'home' }]);
 });

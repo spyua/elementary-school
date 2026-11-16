@@ -46,9 +46,12 @@ export function formatRoute(route) {
 }
 
 // 監聽 hashchange；註冊時先依目前網址呼叫一次。
+// 回傳解除監聽的函式（測試或日後切換畫面時使用）。
 export function onRoute(handler) {
-  window.addEventListener('hashchange', () => handler(parseRoute(window.location.hash)));
+  const listener = () => handler(parseRoute(window.location.hash));
+  window.addEventListener('hashchange', listener);
   handler(parseRoute(window.location.hash));
+  return () => window.removeEventListener('hashchange', listener);
 }
 
 export function navigate(route) {
