@@ -131,6 +131,8 @@ export const PACKS = [
   {
     id: 'g1-english-demo', grade: 1, subject: 'english', semester: 'demo', label: '試玩', trial: true,
     load: () => import('./english/g1-demo/index.js'),
+    // 「下載教材」時一併快取的圖檔（相對 BASE_URL 的路徑）。
+    assets: ['apple', 'banana', 'cat', 'dog', 'fish', 'bird', 'egg', 'sun'].map(w => `emoji/${w}.svg`),
     chapters: [{ name: '', units: ['words'] }],
     intro: '試玩單元：先看動畫認識 8 個英文單字，再做聽音選圖、看圖選字、連連看練習。',
     parentGuide: {

@@ -18,7 +18,14 @@
     "url": "https://github.com/microsoft/fluentui-emoji",
     "license": "MIT",
     "author": "Microsoft Corporation",
-    "usage": "範本單元與英文示範單元的圖卡、數數物件（Flat SVG 複製到 public/emoji/，檔名改成英文單字：apple ← Red apple、banana ← Banana、cat ← Cat face、dog ← Dog face、fish ← Fish、bird ← Bird、egg ← Egg、sun ← Sun）"
+    "usage": "範本單元與英文示範單元的圖卡、數數物件（Flat SVG 複製到 public/emoji/，檔名改成英文單字：apple ← Red apple、banana ← Banana、cat ← Cat face、dog ← Dog face、fish ← Fish、bird ← Bird、egg ← Egg、sun ← Sun）；PWA 圖示來源是 Books（Flat），複製為 public/icons/books.svg，再以 @vite-pwa/assets-generator 產生各尺寸 PNG"
+  },
+  {
+    "name": "Workbox（透過 vite-plugin-pwa 產生 service worker）",
+    "url": "https://github.com/GoogleChrome/workbox",
+    "license": "MIT",
+    "author": "Google LLC",
+    "usage": "離線快取：建置時產生 sw.js 與 workbox-*.js，預先快取 App 外殼，學期包與圖檔用到時才存起來"
   },
   {
     "name": "Kenney Interface Sounds",

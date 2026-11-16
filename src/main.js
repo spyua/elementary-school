@@ -14,6 +14,7 @@ import * as semesterView from './platform/views/semester.js';
 import * as profilesView from './platform/views/profiles.js';
 import * as creditsView from './platform/views/credits.js';
 import { icon } from './platform/icons.js';
+import { renderNotDownloaded } from './platform/offline.js';
 
 const $ = s => document.querySelector(s);
 const VIEWS = { home: homeView, grade: gradeView, semester: semesterView, profiles: profilesView, credits: creditsView };
@@ -60,7 +61,19 @@ async function showUnit(route, token) {
   $('#home').classList.add('hidden');
   $('#lesson').classList.remove('hidden');
   $('#stTxt').textContent = `${meta.icon || '🏆'} ${meta.name || meta.title}`;
-  const mod = await pack.load();
+  let mod;
+  try {
+    mod = await pack.load();
+  } catch (err) {
+    // 學期包載入失敗（多半是離線、還沒下載過）：顯示提示與回首頁按鈕，不出現空白頁。
+    console.error(err);
+    if (token !== routeToken) return;
+    $('#lesson').classList.add('hidden');
+    const box = $('#home');
+    box.classList.remove('hidden');
+    renderNotDownloaded(box);
+    return;
+  }
   if (token !== routeToken) return;
   const { bodies, reviews } = mod.default;
   const body = bodies[route.key] || reviews[route.key];

@@ -4,6 +4,7 @@ import { formatRoute } from '../router.js';
 import { nextUnit } from '../storage.js';
 import { h, GRADE_NAMES } from './dom.js';
 import { icon } from '../icons.js';
+import { offlineSection } from '../offline.js';
 
 export function render(container, ctx) {
   const list = allUnits();
@@ -32,6 +33,10 @@ export function render(container, ctx) {
     }
   });
   nodes.push(grid);
+
+  // 「下載教材，離線使用」：勾選年級與科目，預先存到瀏覽器。
+  const offline = offlineSection();
+  if (offline) nodes.push(offline);
 
   // 頁尾：致謝與授權頁的連結。
   nodes.push(h('p', { className: 'home-foot' },

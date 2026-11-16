@@ -100,3 +100,16 @@ nav button:disabled{opacity:.4;cursor:default;transform:none}
 .blink{animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.35}}
 #note{font-size:13px;color:var(--ink-faint);text-align:center;margin-top:12px}
+/* 首頁「下載教材，離線使用」區塊與離線提示（src/platform/offline.js） */
+details.offline{background:var(--card);border-radius:var(--r-md);padding:12px 18px;margin-top:18px;font-size:17px;box-shadow:0 3px 0 var(--edge)}
+details.offline summary{font-weight:900;font-size:19px;cursor:pointer}
+.offline-hint{margin:6px 0}
+.offline-list{display:flex;flex-wrap:wrap;gap:8px 18px;margin:8px 0 12px}
+.offline-pick{display:inline-flex;align-items:center;gap:4px;font-weight:700;cursor:pointer}
+.offline-pick input{width:22px;height:22px}
+.offline-btn{font-family:inherit;font-size:18px;font-weight:900;color:#fff;background:var(--green);border:none;border-radius:var(--r-md);padding:8px 22px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.offline-btn:disabled{opacity:.6;cursor:default}
+.offline-status{min-height:1.4em;margin:8px 0 0;font-weight:700}
+.not-downloaded{text-align:center;padding:30px 12px;font-size:clamp(18px,3vw,22px);font-weight:700}
+.not-downloaded .big{font-size:60px}
+.not-downloaded .bigbtn{display:inline-block;text-decoration:none;background:var(--green);margin-top:12px}
