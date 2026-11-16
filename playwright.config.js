@@ -5,7 +5,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
   },
-  webServer: {
+  // 錄製舊檔基準（LEGACY=1）時直接用 file:// 開舊檔，不需要啟動新站。
+  webServer: process.env.LEGACY ? undefined : {
     command: 'npm run build && npm run preview -- --port 4173',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
