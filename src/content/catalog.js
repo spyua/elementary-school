@@ -127,6 +127,29 @@ export const PACKS = [
     units: G1A_MATH_UNITS,
     reviews: G1A_MATH_REVIEWS,
   },
+  // 英文示範（試玩）：只用範本做成，用來驗證範本機制與英文語音，不對應正式學期。
+  {
+    id: 'g1-english-demo', grade: 1, subject: 'english', semester: 'demo', label: '試玩', trial: true,
+    load: () => import('./english/g1-demo/index.js'),
+    chapters: [{ name: '', units: ['words'] }],
+    intro: '試玩單元：先看動畫認識 8 個英文單字，再做聽音選圖、看圖選字、連連看練習。',
+    parentGuide: {
+      principles: [
+        '跟著唸：每個單字唸完後，請孩子跟著大聲唸一次。',
+        '指著說：在家看到蘋果、香蕉、貓、狗時，問孩子「英文怎麼說？」',
+        '不用急：英文發音來自裝置內建的語音，聽不清楚時可以按「🔊 再聽一次」。',
+      ],
+    },
+    units: [
+      {
+        id: 'G1-E-words', key: 'words', icon: '🔤', name: '認識英文單字', desc: '聽一聽、選一選、連一連',
+        lang: 'en-US', curriculum: [], prereqs: [],
+        tip: '問孩子：「apple 是哪一個？」讓他指出圖片，再請他自己唸一次。',
+        task: '吃水果或看到小動物時，和孩子一起說出英文名字。',
+      },
+    ],
+    reviews: [],
+  },
 ];
 
 export function findPack(grade, subject, semester) {

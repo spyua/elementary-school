@@ -11,7 +11,8 @@ test('所有 id 不重複且格式正確', () => {
 test('學期包欄位與科目合法', () => {
   for (const p of PACKS) {
     expect(SUBJECTS[p.subject]).toBeDefined();
-    expect(['a', 'b']).toContain(p.semester);
+    // 正式學期包是 a（上學期）或 b（下學期）；試玩包用 demo。
+    expect(p.trial ? ['demo'] : ['a', 'b']).toContain(p.semester);
     expect(typeof p.load).toBe('function');
   }
 });
@@ -50,4 +51,14 @@ test('findPack / findUnit / allUnits', () => {
   expect(findUnit(p, 'nope')).toBeUndefined();
   expect(findUnit(undefined, 'curve')).toBeUndefined();
   expect(allUnits().filter(x => x.pack === p).map(x => x.unit.key)).toEqual(LEGACY_ORDER);
+});
+
+test('英文試玩包只有一個單元 G1-E-words', () => {
+  const p = findPack(1, 'english', 'demo');
+  expect(p).toMatchObject({ id: 'g1-english-demo', grade: 1, subject: 'english', semester: 'demo', label: '試玩', trial: true });
+  expect(p.units).toHaveLength(1);
+  expect(p.units[0]).toMatchObject({
+    id: 'G1-E-words', key: 'words', icon: '🔤', name: '認識英文單字', desc: '聽一聽、選一選、連一連', lang: 'en-US', curriculum: [],
+  });
+  expect(p.reviews).toEqual([]);
 });

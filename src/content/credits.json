@@ -18,7 +18,7 @@
     "url": "https://github.com/microsoft/fluentui-emoji",
     "license": "MIT",
     "author": "Microsoft Corporation",
-    "usage": "範本單元與英文示範單元的圖卡、數數物件（Flat／Color SVG 複製到 public/emoji/）"
+    "usage": "範本單元與英文示範單元的圖卡、數數物件（Flat SVG 複製到 public/emoji/，檔名改成英文單字：apple ← Red apple、banana ← Banana、cat ← Cat face、dog ← Dog face、fish ← Fish、bird ← Bird、egg ← Egg、sun ← Sun）"
   },
   {
     "name": "Kenney Interface Sounds",
