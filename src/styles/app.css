@@ -78,7 +78,7 @@ dialog::backdrop{background:rgba(61,44,30,.35)}
 #score{color:var(--gold)}
 #stage{position:relative;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--lift-lg);overflow:hidden}
 svg{display:block;width:100%;height:auto;max-height:54vh;margin:0 auto;touch-action:manipulation}
-#sub{min-height:60px;margin:10px 0 6px;background:var(--card);border-radius:var(--r-md);padding:12px 18px;font-size:clamp(19px,3.2vw,26px);font-weight:700;line-height:1.5;box-shadow:var(--lift-md)}
+#sub{flex:1;min-width:0;min-height:60px;margin:0;background:var(--card);border-radius:var(--r-md);padding:12px 18px;font-size:clamp(19px,3.2vw,26px);font-weight:700;line-height:1.5;box-shadow:var(--lift-md)}
 #bar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:8px 0;min-height:10px}
 #bar button,.bigbtn{font-family:inherit;font-size:clamp(19px,3.4vw,26px);font-weight:900;color:#fff;border:none;border-radius:var(--r-md);padding:12px 26px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.18)}
 #bar button:active{transform:var(--press);box-shadow:0 2px 0 rgba(0,0,0,.18)}
@@ -94,8 +94,9 @@ nav button:active{transform:var(--press);box-shadow:0 1px 0 var(--edge-soft)}
 nav button:disabled{opacity:.4;cursor:default;transform:none}
 #next.pulse{background:var(--yellow)}
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,248,231,.97);text-align:center;padding:20px}
-.pop{transform-box:fill-box;transform-origin:center;animation:pop .35s cubic-bezier(.3,1.6,.5,1) both}
-@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .45s ease-out both}
+/* Q 彈曲線：0 → 1.18 → 0.94 → 1 */
+@keyframes pop{0%{transform:scale(0)}55%{transform:scale(1.18)}78%{transform:scale(.94)}100%{transform:scale(1)}}
 .svgtxt{font-family:var(--font-main);font-weight:900}
 .blink{animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.35}}
@@ -113,3 +114,94 @@ details.offline summary{font-weight:900;font-size:19px;cursor:pointer}
 .not-downloaded{text-align:center;padding:30px 12px;font-size:clamp(18px,3vw,22px);font-weight:700}
 .not-downloaded .big{font-size:60px}
 .not-downloaded .bigbtn{display:inline-block;text-decoration:none;background:var(--green);margin-top:12px}
+
+/* ===== 動畫升級（docs/superpowers/specs/2026-11-16-animation-and-exams-design.md 第 5 節） =====
+   規則：裝飾一律用新的 class，不用 .blink、.pulse（對照測試會自動點那兩個 class）。
+   所有裝飾都是 CSS 動畫，不影響場景的時間軸。 */
+
+/* 字幕列：左邊吉祥物小熊，右邊字幕 */
+#subRow{display:flex;align-items:center;gap:10px;margin:10px 0 6px}
+#mascotBox{flex:none;width:64px;height:64px;pointer-events:none;user-select:none}
+#mascot{display:block;width:100%;height:100%;transform-origin:50% 90%}
+#mascot.talk{animation:mtalk .32s ease-in-out infinite alternate}
+#mascot.jump{animation:mjump .6s cubic-bezier(.3,1.5,.5,1)}
+#mascot.tilt{animation:mtilt .7s ease-in-out}
+#mascot.nod{animation:mnod .5s ease-in-out}
+@keyframes mtalk{from{transform:scale(1,1)}to{transform:scale(1.04,.95)}}
+@keyframes mjump{0%,100%{transform:translateY(0)}40%{transform:translateY(-22px) scale(1.06)}70%{transform:translateY(0) scale(1.06,.92)}}
+@keyframes mtilt{0%,100%{transform:rotate(0)}30%,70%{transform:rotate(-14deg)}}
+@keyframes mnod{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@media (max-width:520px){#mascotBox{width:48px;height:48px}}
+
+/* 待機輕晃：上下 3px；延遲用 --i（索引）錯開 */
+.bob{transform-box:fill-box;transform-origin:center bottom;animation:bob 2.4s ease-in-out calc(var(--i,0) * .18s) infinite}
+.pop.bob{animation:pop .45s ease-out both,bob 2.4s ease-in-out calc(.45s + var(--i,0) * .18s) infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+/* 數數時跳一下 */
+.hop,.pop.hop,.bob.hop,.pop.bob.hop{transform-box:fill-box;transform-origin:center bottom;animation:hop .42s ease-out}
+@keyframes hop{0%,100%{transform:translateY(0)}35%{transform:translateY(-12px) scale(1.08)}70%{transform:translateY(0) scale(1.06,.94)}}
+/* 小鳥飛走時拍翅 */
+.flap,.pop.flap,.bob.flap,.pop.bob.flap{transform-box:fill-box;transform-origin:center;animation:flap .22s ease-in-out infinite alternate}
+@keyframes flap{from{transform:rotate(-10deg) scale(1,1)}to{transform:rotate(8deg) scale(1.05,.9)}}
+/* 瓢蟲走路時身體輕擺 */
+.waddle{transform-box:fill-box;transform-origin:center;animation:waddle .3s ease-in-out infinite alternate}
+@keyframes waddle{from{transform:rotate(-8deg)}to{transform:rotate(8deg)}}
+/* 火車輪子轉動（只在 .moving 的車廂上轉）、冒煙 */
+.wheel{transform-box:fill-box;transform-origin:center}
+.moving .wheel{animation:spin .5s linear infinite}
+.spin{transform-box:fill-box;transform-origin:center;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.puff{opacity:0}
+.moving.lead .puff{transform-box:fill-box;transform-origin:center;animation:puff 1s ease-out infinite}
+.moving.lead .puff + .puff{animation-delay:.5s}
+@keyframes puff{0%{opacity:.85;transform:translate(0,0) scale(.5)}100%{opacity:0;transform:translate(14px,-26px) scale(1.4)}}
+/* 被劃掉、吃掉的物件變灰 */
+.gone{filter:grayscale(1)}
+/* 結果頁沒拿到的星星 */
+.dim{filter:grayscale(1);opacity:.35}
+/* 打勾、畫圈像用筆一筆畫出來（--len 由 svg.js 量出線長） */
+.draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .45s ease-out .05s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+/* 答錯時記號輕搖 */
+.shake{transform-box:fill-box;transform-origin:center;animation:shake .45s ease-in-out}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+/* 餅乾碎屑 */
+.crumb{transform-box:fill-box;transform-origin:center;animation:crumb .6s ease-out forwards}
+@keyframes crumb{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+
+/* 紙花、星星爆開：放在 #stage 裡、#svg 外面，不擋點擊 */
+.fx-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti-piece{position:absolute;top:-16px;width:10px;height:16px;border-radius:3px;animation:confetti 1.3s ease-in forwards}
+.confetti-piece.round{width:12px;height:12px;border-radius:50%}
+@keyframes confetti{0%{top:-16px;transform:translateX(0) rotate(0);opacity:1}85%{opacity:1}100%{top:104%;transform:translateX(var(--dx)) rotate(var(--rot));opacity:0}}
+.burst-star{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;animation:burst .8s ease-out forwards}
+@keyframes burst{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.1);opacity:0}}
+
+/* 單元背景主題：漸層 + 內嵌 SVG 圖樣，不另外放圖檔。顏色都很淡，不搶畫面。 */
+#stage[data-theme="meadow"]{background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='40'%3E%3Cpath d='M8 38 q3 -9 6 0 M38 38 q2 -7 5 0' stroke='%23b8dca0' stroke-width='2' fill='none'/%3E%3C/svg%3E") bottom/60px 40px repeat-x,
+  linear-gradient(#eef8ff 0%,#f8fcf0 62%,#e3f3d3 100%)}
+#stage[data-theme="picnic"]{background:
+  repeating-linear-gradient(90deg,rgba(255,90,95,.045) 0 28px,transparent 28px 56px),
+  repeating-linear-gradient(0deg,rgba(255,90,95,.045) 0 28px,transparent 28px 56px),#fffaf6}
+#stage[data-theme="sky"]{background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='120'%3E%3Cg fill='%23ffffff' opacity='.85'%3E%3Cellipse cx='40' cy='30' rx='26' ry='10'/%3E%3Cellipse cx='58' cy='24' rx='16' ry='10'/%3E%3Cellipse cx='160' cy='86' rx='22' ry='8'/%3E%3C/g%3E%3C/svg%3E") 0 0/220px 120px repeat,
+  linear-gradient(#e2f1ff,#f6fbff)}
+#stage[data-theme="blocks"]{background:
+  repeating-conic-gradient(#fff6e6 0 25%,#fffdf8 0 50%) 0 0/48px 48px}
+#stage[data-theme="paper"]{background:
+  linear-gradient(rgba(58,134,255,.07) 1px,transparent 1px) 0 0/100% 28px,
+  linear-gradient(90deg,rgba(58,134,255,.05) 1px,transparent 1px) 0 0/28px 100%,#fffefb}
+
+/* 練習與考試時，要數的物件不晃動（只保留彈出） */
+#stage[data-mode="practice"] .bob,#stage[data-mode="exam"] .bob{animation:none}
+#stage[data-mode="practice"] .pop.bob,#stage[data-mode="exam"] .pop.bob{animation:pop .45s ease-out both}
+
+/* 「減少動態效果」：只保留淡入，其他裝飾動畫全部關掉 */
+@media (prefers-reduced-motion:reduce){
+  .pop,.pop.bob,.pop.hop,.pop.flap{animation:fadein .25s ease-out both!important}
+  .bob,.hop,.flap,.waddle,.spin,.shake,.moving .wheel,.moving.lead .puff,#mascot{animation:none!important}
+  .draw{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+  .crumb,.fx-layer{display:none}
+}
+@keyframes fadein{from{opacity:0}to{opacity:1}}

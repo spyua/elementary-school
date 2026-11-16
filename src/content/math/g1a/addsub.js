@@ -1,9 +1,12 @@
 // 一上數學學期包：10以內的加法、減法：單元與題型。
 // 程式從舊版單檔原樣搬來，只補上 import／export，並把 runId 改成 S.runId。
+// 動畫升級：emoji 改用 Fluent 圖片、盤子加厚度、數數徽章、飛走拍翅、吃掉冒碎屑、劃掉變灰。字幕、亂數、時長都沒有改。
 import { ABORT, S } from '../../../engine/state.js';
 import { RED, BLUE, ri, pick, shuffle } from '../../../engine/util.js';
 import { subEl, chk, wait, speakOne } from '../../../engine/speech.js';
-import { svg, el, txt, tween } from '../../../engine/svg.js';
+import { svg, el, txt, tween, EASE } from '../../../engine/svg.js';
+import { emojiAt } from '../../../engine/emoji.js';
+import { replay, crumbs } from '../../../engine/fx.js';
 import { clearBar, button, askChoice } from '../../../engine/ui.js';
 import { OBJ, bondDiag, sentence, countDots, tenFrame } from './split.js';
 
@@ -13,14 +16,18 @@ const c_spk=s=>s.replace(/＋/g,'加').replace(/－/g,'減').replace(/＝/g,'等
 async function c_say(text,id){chk(id);subEl.textContent=text;await speakOne(c_spk(text));chk(id);await wait(220,id);}
 function c_grid(cx,cy,n,em,cols=5,gap=58,size=42,parent=svg){const out=[],rows=Math.ceil(n/cols)||1;
   for(let i=0;i<n;i++){const r=Math.floor(i/cols),c=i%cols,inRow=Math.min(cols,n-r*cols);
-    out.push(txt(cx-(inRow-1)*gap/2+c*gap,cy-(rows-1)*gap/2+r*gap,em,{'font-size':size},parent));}return out;}
-function c_plate(cx,cy,rx=150,ry=80,col='#f1f5ff',st='#c7d3f0'){return el('ellipse',{cx,cy,rx,ry,fill:col,stroke:st,'stroke-width':3});}
+    out.push(emojiAt(cx-(inRow-1)*gap/2+c*gap,cy-(rows-1)*gap/2+r*gap,em,{'font-size':size,class:'svgtxt bob',style:`--i:${i}`},parent));}return out;}
+/* 盤子：底下一圈影子、盤面、內圈盤緣，看起來有厚度。回傳盤面。 */
+function c_plate(cx,cy,rx=150,ry=80,col='#f1f5ff',st='#c7d3f0'){el('ellipse',{cx,cy:cy+10,rx:rx+2,ry,fill:'rgba(61,44,30,.10)'});
+  const e=el('ellipse',{cx,cy,rx,ry,fill:col,stroke:st,'stroke-width':3});el('ellipse',{cx,cy,rx:rx*.8,ry:ry*.72,fill:'none',stroke:st,'stroke-width':2,opacity:.6});return e;}
 function c_crossXY(x,y,parent=svg,r=20){const g=el('g',{class:'pop'},parent);
   el('line',{x1:x-r,y1:y-r,x2:x+r,y2:y+r,stroke:'#e63946','stroke-width':5,'stroke-linecap':'round'},g);
   el('line',{x1:x+r,y1:y-r,x2:x-r,y2:y+r,stroke:'#e63946','stroke-width':5,'stroke-linecap':'round'},g);return g;}
 const c_xy=t=>[+t.getAttribute('x'),+t.getAttribute('y')];
-function c_cross(t,parent=svg){const[x,y]=c_xy(t);return c_crossXY(x,y,parent);}
-function c_num(t,n,col='#e07a00'){const[x,y]=c_xy(t);return txt(x+22,y-24,String(n),{'font-size':17,fill:col,class:'svgtxt pop'});}
+function c_cross(t,parent=svg){const[x,y]=c_xy(t);if(t.classList)t.classList.add('gone');return c_crossXY(x,y,parent);}
+/* 數數徽章：物件右上角的彩色圓底＋白色數字，物件跳一下。 */
+function c_num(t,n,col='#e07a00'){const[x,y]=c_xy(t);replay(t,'hop');const g=el('g',{class:'pop'});el('circle',{cx:x+22,cy:y-24,r:12,fill:col,stroke:'#fff','stroke-width':2},g);
+  return txt(x+22,y-23,String(n),{'font-size':17,fill:'#fff'},g);}
 const c_eq=(a,op,b,c,unk=-1)=>[{v:a,u:unk===0},op,{v:b,u:unk===1},'＝',{v:c,u:unk===2}];
 async function c_countObjs(objs,id,col){for(let i=0;i<objs.length;i++){chk(id);c_num(objs[i],i+1,col);await wait(170,id);}}
 /* 點點說明：加法 a 紅 + b 藍 */
@@ -38,9 +45,10 @@ async function c_missDots(a,c,y,id){const dx=400-(c-1)*23,cs=[];
 function c_card(cx,cy,w,h,label,size=34,parent=svg){el('rect',{x:cx-w/2,y:cy-h/2,width:w,height:h,rx:16,fill:'#fff',stroke:'#c9b28a','stroke-width':4},parent);
   txt(cx,cy+2,label,{'font-size':size,fill:'#3d2c1e'},parent);return{x:cx-w/2-6,y:cy-h/2-6,w:w+12,h:h+12};}
 function c_moveTo(objs,targets,dur,id){const st=objs.map(c_xy);
-  return tween(dur,e=>objs.forEach((t,i)=>{t.setAttribute('x',st[i][0]+(targets[i][0]-st[i][0])*e);t.setAttribute('y',st[i][1]+(targets[i][1]-st[i][1])*e);}),id);}
-function c_flyAway(objs,dur,id,dx=320,dy=-260){const st=objs.map(c_xy);
-  return tween(dur,e=>objs.forEach((t,i)=>{t.setAttribute('x',st[i][0]+dx*e);t.setAttribute('y',st[i][1]+dy*e);t.style.opacity=1-e;}),id);}
+  return tween(dur,e=>objs.forEach((t,i)=>{t.setAttribute('x',st[i][0]+(targets[i][0]-st[i][0])*e);t.setAttribute('y',st[i][1]+(targets[i][1]-st[i][1])*e);}),id,EASE.outBack);}
+/* 飛走：位置用 inBack（先縮一下再衝出去）；透明度用原始時間 t，不用 back 曲線。小鳥會拍翅。 */
+function c_flyAway(objs,dur,id,dx=320,dy=-260){const st=objs.map(c_xy);objs.forEach(t=>{if(t.textContent==='🐦'&&t.classList)t.classList.add('flap');});
+  return tween(dur,(e,tt)=>objs.forEach((t,i)=>{t.setAttribute('x',st[i][0]+dx*e);t.setAttribute('y',st[i][1]+dy*e);t.style.opacity=1-tt;}),id,EASE.inBack);}
 /* 孩子點按鈕放東西 */
 function c_tapAdd(id,cx,cy,start,need,em){const objs=c_grid(cx,cy,start+need,em,5,58,42);objs.forEach((t,i)=>{if(i>=start)t.style.display='none';});
   return new Promise((res,rej)=>{let n=start;const t=setInterval(()=>{if(id!==S.runId){clearInterval(t);clearBar();rej(ABORT);}},200);
@@ -49,7 +57,7 @@ function c_tapAdd(id,cx,cy,start,need,em){const objs=c_grid(cx,cy,start+need,em,
     clearBar();button(`${em} 放一個`,'#ff5a5f',add);button('🪄 幫我放','#9b7bd8',()=>{while(n<start+need)add();});});}
 /* 孩子點東西把它吃掉 */
 function c_tapEat(id,objs,need){return new Promise((res,rej)=>{let eaten=0;const done=new Set();const t=setInterval(()=>{if(id!==S.runId){clearInterval(t);clearBar();rej(ABORT);}},200);
-  const eat=i=>{if(done.has(i)||eaten>=need)return;done.add(i);eaten++;objs[i].style.opacity=.35;c_cross(objs[i]);subEl.textContent=`吃掉 ${eaten} 個`;
+  const eat=i=>{if(done.has(i)||eaten>=need)return;done.add(i);eaten++;objs[i].style.opacity=.35;crumbs(...c_xy(objs[i]),svg,'#ff8fab');c_cross(objs[i]);subEl.textContent=`吃掉 ${eaten} 個`;
     if(eaten===need){clearInterval(t);clearBar();res([...done]);}};
   objs.forEach((o,i)=>{o.style.cursor='pointer';o.addEventListener('click',()=>eat(i));});
   clearBar();button('🪄 幫我吃','#9b7bd8',()=>{for(let i=objs.length-1;i>=0&&eaten<need;i--)eat(i);});});}
@@ -68,8 +76,8 @@ export const unitAdd={count:8,
  {title:'又來了幾隻？',async run(id){
    el('path',{d:'M60 210 Q400 190 740 215',stroke:'#8d5a26','stroke-width':12,fill:'none','stroke-linecap':'round'});
    const sit=c_grid(260,180,4,'🐦',4,70,44);await c_say('樹枝上有 4 隻小鳥。',id);
-   const come=[txt(860,60,'🐦',{'font-size':44}),txt(920,100,'🐦',{'font-size':44})];
-   await c_say('又飛來 2 隻！',id);await c_moveTo(come,[[540,180],[610,180]],1400,id);
+   const come=[emojiAt(860,60,'🐦',{'font-size':44,class:'svgtxt flap'}),emojiAt(920,100,'🐦',{'font-size':44,class:'svgtxt flap'})];
+   await c_say('又飛來 2 隻！',id);await c_moveTo(come,[[540,180],[610,180]],1400,id);come.forEach(t=>t.classList.remove('flap'));
    await c_say('現在有幾隻？你猜猜看。',id);
    const g=await askChoice([5,6,7].map(v=>({label:v+' 隻',color:'#3a86ff',value:v})),id);
    await c_countObjs(sit.concat(come),id);sentence(330,c_eq(4,'＋',2,6));

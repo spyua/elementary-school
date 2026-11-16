@@ -23,7 +23,9 @@ const zhText=t=>t.replace(/✓/g,'勾').replace(/○/g,'圈').replace(/[＋+]/g,
  * 朗讀一句話，唸完（或逾時、出錯）時 resolve，永遠不會 reject。
  * 找不到該語言的語音時，仍設定 u.lang 交給瀏覽器決定；也沒有回應時靠逾時往下走。
  */
-export function speakOne(text,lang='zh-TW',rate=.88){return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;res();}};
+// 開始、結束朗讀時發出 lesson:say 事件，讓吉祥物張嘴（mascot.js）。只是通知，不影響流程與時間。
+function sayEvent(state){try{window.dispatchEvent(new CustomEvent('lesson:say',{detail:{state}}));}catch{/* 沒有 CustomEvent 的環境，忽略 */}}
+export function speakOne(text,lang='zh-TW',rate=.88){return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;sayEvent('end');res();}};sayEvent('start');
   if(S.muted||!('speechSynthesis' in window)){setTimeout(fin,500+text.length*200);return;}
   const u=new SpeechSynthesisUtterance(lang==='zh-TW'?zhText(text):text);u.lang=lang;const v=voices[lang];if(v)u.voice=v;u.rate=rate;u.pitch=1.15;
   u.onend=fin;u.onerror=fin;setTimeout(fin,1500+text.length*350);

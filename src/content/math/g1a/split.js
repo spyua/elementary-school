@@ -1,9 +1,11 @@
 // 一上數學學期包：分與合：分合圖、算式卡、火車車廂工具，分與合單元與題型。
 // 程式從舊版單檔原樣搬來，只補上 import／export，並把 runId 改成 S.runId。
+// 動畫升級：火車加影子、輪子放射線（移動時轉動）、冒煙；數數點點加徽章底。字幕、亂數、時長都沒有改。
 import { ABORT, S } from '../../../engine/state.js';
 import { RED, BLUE, GREEN, ri, pick, shuffle } from '../../../engine/util.js';
 import { subEl, chk, wait, speakOne, say } from '../../../engine/speech.js';
 import { svg, el, txt, clear, tween } from '../../../engine/svg.js';
+import { emojiAt } from '../../../engine/emoji.js';
 import { clearBar, button } from '../../../engine/ui.js';
 
 /* ================= 分與合 ================= */
@@ -19,15 +21,24 @@ export function sentence(cy,toks,parent=svg){const W=t=>typeof t==='string'?t.le
       const tt=txt(x+w/2,cy+2,t.u?'?':String(t.v),{'font-size':38,fill:t.u?'#ff8c42':'#3d2c1e'},parent);if(t.u)ut=tt;}x+=w;});
   return{fill(n,c='#3d2c1e'){if(ut){ut.textContent=n;ut.setAttribute('fill',c);}}};}
 export async function countDots(x0,y,cols,id,gap=46,fast){const out=[];for(let i=0;i<cols.length;i++){chk(id);const g=el('g',{class:'pop'});
-  el('circle',{cx:x0+i*gap,cy:y,r:17,fill:cols[i]},g);txt(x0+i*gap,y-30,String(i+1),{'font-size':18,fill:'#7a6650'},g);out.push(g);await wait(fast?110:220,id);}return out;}
+  el('circle',{cx:x0+i*gap,cy:y,r:17,fill:cols[i]},g);el('circle',{cx:x0+i*gap,cy:y-30,r:11,fill:'#fff3c4',stroke:'#e8d39a','stroke-width':1.5},g);txt(x0+i*gap,y-30,String(i+1),{'font-size':18,fill:'#7a6650'},g);out.push(g);await wait(fast?110:220,id);}return out;}
 export function tenFrame(cx,cy,k,parent=svg){const cs=64,x0=cx-cs*2.5,y0=cy-cs,cells=[];for(let r=0;r<2;r++)for(let c=0;c<5;c++){
   el('rect',{x:x0+c*cs,y:y0+r*cs,width:cs,height:cs,fill:'#fff',stroke:'#c9b28a','stroke-width':3},parent);cells.push([x0+c*cs+cs/2,y0+r*cs+cs/2]);}
   for(let i=0;i<k;i++)el('circle',{cx:cells[i][0],cy:cells[i][1],r:22,fill:RED.c},parent);return cells;}
 /* ---------- 火車 helpers ---------- */
 const TP=66;
-function trCar(p,x,y,col){const g=el('g',{},p);el('rect',{x:x,y:y-22,width:58,height:38,rx:9,fill:col,stroke:'rgba(0,0,0,.25)','stroke-width':2},g);
+// 車廂。注意：別的程式用 g.querySelector('rect') 改車身顏色，所以車身必須是第一個 <rect>（影子用 ellipse）。
+function trCar(p,x,y,col){const g=el('g',{},p);el('ellipse',{cx:x+29,cy:y+25,rx:30,ry:4,fill:'rgba(0,0,0,.12)'},g);
+  el('rect',{x:x,y:y-22,width:58,height:38,rx:9,fill:col,stroke:'rgba(0,0,0,.25)','stroke-width':2},g);
   el('rect',{x:x+8,y:y-15,width:17,height:14,rx:3,fill:'#fff'},g);el('rect',{x:x+33,y:y-15,width:17,height:14,rx:3,fill:'#fff'},g);
-  el('circle',{cx:x+14,cy:y+18,r:7,fill:'#444'},g);el('circle',{cx:x+44,cy:y+18,r:7,fill:'#444'},g);return g;}
+  el('path',{d:`M${x+4} ${y+9} H${x+54}`,stroke:'rgba(255,255,255,.35)','stroke-width':3,'stroke-linecap':'round'},g);
+  trWheel(g,x+14,y+18);trWheel(g,x+44,y+18);
+  el('circle',{cx:x+12,cy:y-30,r:6,fill:'#eee',class:'puff'},g);el('circle',{cx:x+12,cy:y-30,r:6,fill:'#eee',class:'puff'},g);return g;}
+/* 輪子：外圈、放射線、軸心。車廂加上 .moving 時才會轉（app.css）。 */
+function trWheel(p,cx,cy){const w=el('g',{class:'wheel'},p);el('circle',{cx,cy,r:7,fill:'#444'},w);
+  el('path',{d:`M${cx-5} ${cy} H${cx+5} M${cx} ${cy-5} V${cy+5}`,stroke:'#bbb','stroke-width':1.6},w);el('circle',{cx,cy,r:2,fill:'#ddd'},w);}
+/* 讓一列車廂開始或停止「行駛」的樣子：輪子轉、第一節冒煙。 */
+function trMoving(cars,on){cars.forEach((g,i)=>{g.classList.toggle('moving',on);g.classList.toggle('lead',on&&i===0);});}
 function trTrack(p,x1,x2,y){el('line',{x1,y1:y+26,x2,y2:y+26,stroke:'#8d6e63','stroke-width':4},p);for(let x=x1;x<x2;x+=22)el('line',{x1:x,y1:y+22,x2:x+10,y2:y+30,stroke:'#bcaaa4','stroke-width':3},p);}
 function trCoupler(p,x,y){return el('circle',{cx:x,cy:y+2,r:7,fill:'#ffbe0b',stroke:'#fff','stroke-width':2,class:'blink'},p);}
 function trSlot(p,x,y){el('rect',{x:x,y:y-22,width:58,height:38,rx:9,fill:'none',stroke:'#bbb','stroke-width':3,'stroke-dasharray':'7 5'},p);}
@@ -37,7 +48,7 @@ function trainPlay(n,id,avoid){return new Promise((res,rej)=>{clear();
   const cps=[];for(let k=1;k<n;k++){const cx=x0+k*TP-4;const c=trCoupler(svg,cx,y);const h=el('rect',{x:cx-26,y:y-50,width:52,height:100,fill:'transparent',style:'cursor:pointer'});
     h.addEventListener('click',()=>setCut(k));cps.push(c);}
   const hint=txt(400,385,'👆 點兩節車廂中間，把火車分開',{'font-size':22,fill:'#9a8466'});
-  function setCut(k){cut=k;cars.forEach((g,i)=>{g.style.transform=i>=k?'translate(50px,0)':'translate(-10px,0)';g.querySelector('rect').setAttribute('fill',i<k?RED.c:BLUE.c);});
+  function setCut(k){cut=k;trMoving(cars,true);setTimeout(()=>trMoving(cars,false),450);cars.forEach((g,i)=>{g.style.transform=i>=k?'translate(50px,0)':'translate(-10px,0)';g.querySelector('rect').setAttribute('fill',i<k?RED.c:BLUE.c);});
     cps.forEach(c=>c.style.opacity=0);hint.textContent='';bondG.innerHTML='';bondDiag(400,40,[n,k,n-k],-1,bondG);}
   bondDiag(400,40,[n,0,0],-1,bondG);bondG.innerHTML='';bondDiag(400,40,[n,'?','?'],-1,bondG);
   const tm=setInterval(()=>{if(id!==S.runId){clearInterval(tm);rej(ABORT);}},200);clearBar();
@@ -52,7 +63,7 @@ export const unitSplit={count:8,practice:['bond','picture','ten','pair','wrong']
    txt(150,215,'3 節',{'font-size':24,fill:RED.c});txt(625,215,'2 節',{'font-size':24,fill:BLUE.c});
    await say('紅色火車有 3 節車廂，藍色火車有 2 節車廂。',id);await say('兩列火車接起來，一共有幾節車廂呢？',id);
    svg.querySelectorAll('text').forEach(t=>t.remove());
-   await tween(1500,e=>B.forEach(g=>g.setAttribute('transform',`translate(${(60+3*TP-560)*e},0)`)),id);
+   trMoving(B,true);await tween(1500,e=>B.forEach(g=>g.setAttribute('transform',`translate(${(60+3*TP-560)*e},0)`)),id);trMoving(B,false);
    for(let i=0;i<5;i++){txt(60+i*TP+29,100,String(i+1),{'font-size':24,fill:'#e07a00',class:'svgtxt pop'});subEl.textContent=String(i+1);await speakOne(String(i+1));chk(id);}
    await say('3 節和 2 節，接起來是 5 節。3 和 2 合起來是 5。',id);bondDiag(560,250,[5,3,2],-1);
    await say('右下這個叫做分合圖：上面是全部，下面是分開的兩個部分。',id);}},
@@ -84,8 +95,8 @@ export const unitSplit={count:8,practice:['bond','picture','ten','pair','wrong']
    await say('0和10、1和9、2和8、3和7、4和6、5和5，都是 10 的好朋友！',id);}},
  {title:'記住小口訣',async run(id){
    const L=[['🔗','合起來：兩列火車接起來 → 全部','#e8f1ff'],['✂️','分開來：一列火車分成兩列','#ffe8e8'],['✏️','不會的時候，畫車廂數一數！','#e6f8ee']];
-   for(let i=0;i<3;i++){const y=90+i*120,g=el('g',{class:'pop'});el('rect',{x:40,y:y-45,width:720,height:90,rx:20,fill:L[i][2]},g);
-     txt(95,y+2,L[i][0],{'font-size':38},g);txt(140,y+2,L[i][1],{'font-size':27,fill:'#3d2c1e','text-anchor':'start'},g);await say(L[i][1].replace('→','變成'),id);}
+   for(let i=0;i<3;i++){const y=90+i*120,g=el('g',{class:'pop'});el('rect',{x:40,y:y-39,width:720,height:90,rx:20,fill:'rgba(61,44,30,.10)'},g);
+     el('rect',{x:40,y:y-45,width:720,height:90,rx:20,fill:L[i][2]},g);emojiAt(95,y+2,L[i][0],{'font-size':38},g);txt(140,y+2,L[i][1],{'font-size':27,fill:'#3d2c1e','text-anchor':'start'},g);await say(L[i][1].replace('→','變成'),id);}
    await say('接下來換你練習！',id);}}
  ]};
 

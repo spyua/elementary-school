@@ -1,8 +1,10 @@
 // 一上數學學期包：30以內的數、時間：單元與題型。
 // 程式從舊版單檔原樣搬來，只補上 import／export，並把 runId 改成 S.runId。
+// 動畫升級：時鐘彩色外框、粗刻度、指針圓點；事件卡與口訣卡 emoji 改用 Fluent 圖片。字幕、亂數、時長都沒有改。
 import { RED, BLUE, GREEN, ri, pick, shuffle, distinct } from '../../../engine/util.js';
 import { subEl, chk, wait, speakOne, say } from '../../../engine/speech.js';
 import { svg, el, txt, clear, tween } from '../../../engine/svg.js';
+import { emojiAt } from '../../../engine/emoji.js';
 import { askChoice } from '../../../engine/ui.js';
 
 /* ===== module d_num30_time.js ===== */
@@ -23,13 +25,16 @@ function d_track(x0,y0,from,to,cols=10,cw=64,ch=52,hidden=[]){const cells={};for
   const h=hidden.includes(n);const t=txt(x+(cw-4)/2,y+(ch-4)/2+1,h?'?':String(n),{'font-size':24,fill:h?'#ff8c42':'#3d2c1e'});cells[n]={r,t,x,y};}return cells;}
 const d_tl=(h,m)=>`${h} 點${m?'半':'鐘'}`;
 const d_next=h=>h%12+1;
-function d_clock(p,cx,cy,r,h,m){const g=el('g',{},p);
+// 時鐘：影子、彩色外框、白色鐘面、粗刻度。注意：鐘面數字是 <text>，「哪個比較早」場景會用 querySelectorAll('text') 找標籤，所以這裡不新增 <text>。
+function d_clock(p,cx,cy,r,h,m){const g=el('g',{},p),rim=Math.max(5,r*.09);
+  el('circle',{cx,cy:cy+r*.05,r:r+rim*.6,fill:'rgba(61,44,30,.12)'},g);
+  el('circle',{cx,cy,r:r+rim*.5,fill:'#ff8c42'},g);el('circle',{cx,cy,r:r+rim*.5,fill:'none',stroke:'#ffbe0b','stroke-width':rim*.35,opacity:.8},g);
   el('circle',{cx,cy,r,fill:'#fff',stroke:'#3d2c1e','stroke-width':Math.max(3,r*.045)},g);
-  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,l=i%5?r*.04:r*.09;el('line',{x1:cx+Math.sin(a)*(r*.95),y1:cy-Math.cos(a)*(r*.95),x2:cx+Math.sin(a)*(r*.95-l),y2:cy-Math.cos(a)*(r*.95-l),stroke:'#999','stroke-width':i%5?1.2:2.5},g);}
+  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,l=i%5?r*.04:r*.07;el('line',{x1:cx+Math.sin(a)*(r*.95),y1:cy-Math.cos(a)*(r*.95),x2:cx+Math.sin(a)*(r*.95-l),y2:cy-Math.cos(a)*(r*.95-l),stroke:i%5?'#aaa':'#3d2c1e','stroke-width':i%5?1.2:Math.max(2.5,r*.03),'stroke-linecap':'round'},g);}
   const nums=[];for(let n=1;n<=12;n++){const a=n*30*Math.PI/180;nums[n]=txt(cx+Math.sin(a)*(r*.8),cy-Math.cos(a)*(r*.8)+1,String(n),{'font-size':Math.round(r*.18),fill:'#3d2c1e'},g);}
   const hh=el('line',{x1:cx,y1:cy,x2:cx,y2:cy-r*.48,stroke:'#e63946','stroke-width':r*.08,'stroke-linecap':'round'},g);
   const mh=el('line',{x1:cx,y1:cy,x2:cx,y2:cy-r*.66,stroke:'#3a86ff','stroke-width':r*.05,'stroke-linecap':'round'},g);
-  el('circle',{cx,cy,r:r*.06,fill:'#3d2c1e'},g);let tot=0;
+  el('circle',{cx,cy,r:r*.08,fill:'#3d2c1e',stroke:'#fff','stroke-width':Math.max(1.5,r*.02)},g);el('circle',{cx,cy,r:r*.025,fill:'#ffbe0b'},g);let tot=0;
   const set=t=>{tot=t;const H=(t/60)%12,M=t%60;hh.setAttribute('transform',`rotate(${H*30} ${cx} ${cy})`);mh.setAttribute('transform',`rotate(${M*6} ${cx} ${cy})`);};
   set(h*60+m);
   return{g,set,nums,cx,cy,r,get t(){return tot;},async to(t,dur,id){const s=tot;await tween(dur,e=>set(s+(t-s)*e),id);},
@@ -38,10 +43,11 @@ function d_ringNum(ck,n,color){const[x,y]=ck.numPos(n);return el('circle',{cx:x,
 const D_EVENTS=[[['🛏️','起床'],['🪥','刷牙'],['🎒','上學']],[['🧼','洗手'],['🍚','吃飯'],['🪥','刷牙']],[['🏫','放學'],['✏️','寫功課'],['😴','睡覺']],
   [['🧦','穿襪子'],['👟','穿鞋子'],['🚪','出門']],[['🛁','洗澡'],['👕','穿睡衣'],['😴','睡覺']]];
 function d_eventCards(order,cy){const xs=[150,400,650];return order.map((ev,i)=>{const g=el('g',{});
+  el('rect',{x:xs[i]-100,y:cy-74,width:200,height:160,rx:20,fill:'rgba(61,44,30,.10)'},g);
   el('rect',{x:xs[i]-100,y:cy-80,width:200,height:160,rx:20,fill:'#fff',stroke:'#c9b28a','stroke-width':4},g);
-  txt(xs[i],cy-20,ev[0],{'font-size':56},g);txt(xs[i],cy+50,ev[1],{'font-size':28,fill:'#3d2c1e'},g);return{g,x:xs[i]};});}
-function d_lines(L){for(let i=0;i<L.length;i++){const y=90+i*120,g=el('g',{class:'pop'});el('rect',{x:30,y:y-45,width:740,height:90,rx:20,fill:L[i][2]},g);
-  txt(85,y+2,L[i][0],{'font-size':36},g);txt(125,y+2,L[i][1],{'font-size':25,fill:'#3d2c1e','text-anchor':'start'},g);}}
+  emojiAt(xs[i],cy-20,ev[0],{'font-size':56},g);txt(xs[i],cy+50,ev[1],{'font-size':28,fill:'#3d2c1e'},g);return{g,x:xs[i]};});}
+function d_lines(L){for(let i=0;i<L.length;i++){const y=90+i*120,g=el('g',{class:'pop'});el('rect',{x:30,y:y-39,width:740,height:90,rx:20,fill:'rgba(61,44,30,.10)'},g);
+  el('rect',{x:30,y:y-45,width:740,height:90,rx:20,fill:L[i][2]},g);emojiAt(85,y+2,L[i][0],{'font-size':36},g);txt(125,y+2,L[i][1],{'font-size':25,fill:'#3d2c1e','text-anchor':'start'},g);}}
 
 /* ================= 單元：30以內的數 ================= */
 export const unitNum30={count:8,practice:['n30bundle','n30tens','n30seq','n30cmp'],

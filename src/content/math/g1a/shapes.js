@@ -1,9 +1,10 @@
 // 一上數學學期包：認識形狀：平面圖形、立體積木工具，單元與題型。
 // 程式從舊版單檔原樣搬來，只補上 import／export，並把 runId 改成 S.runId。
+// 動畫升級：地面與立體積木加厚度、影子；積木掉下來用彈跳緩動。字幕、亂數、時長都沒有改。
 import { ABORT, S } from '../../../engine/state.js';
 import { rand, ri, pick, shuffle } from '../../../engine/util.js';
 import { subEl, chk, wait, speakOne, say } from '../../../engine/speech.js';
-import { svg, el, txt, clear, tween, markShape } from '../../../engine/svg.js';
+import { svg, el, txt, clear, tween, EASE, markShape } from '../../../engine/svg.js';
 import { clearBar, button, askChoice } from '../../../engine/ui.js';
 
 /* ===== module b_shapes.js ===== */
@@ -12,7 +13,10 @@ const b_NAME={tri:'三角形',sq:'正方形',rect:'長方形',circ:'圓形'};
 const b_FEAT={tri:'有3個角、3條邊',sq:'有4個角，4條邊一樣長',rect:'有4個角，有長的邊也有短的邊',circ:'圓圓的，沒有角'};
 const b_COLS=['#ff8fab','#7ec4cf','#ffd166','#9b8cff','#8ac926','#ff9f43','#4cc9f0'];
 const b_INK='#3d2c1e';
-function b_ground(y=360){el('line',{x1:30,y1:y,x2:770,y2:y,stroke:'#c9b28a','stroke-width':4});}
+/* 地面：有厚度的土色帶＋原本的線。 */
+function b_ground(y=360){el('rect',{x:30,y,width:740,height:12,rx:6,fill:'#f3e7cf'});el('line',{x1:30,y1:y,x2:770,y2:y,stroke:'#c9b28a','stroke-width':4});}
+/* 立體積木底下的影子（放在積木的 <g> 裡，積木移動時影子跟著動）。 */
+function b_shadow(g,cx,base,rx){el('ellipse',{cx,cy:base+2,rx,ry:Math.max(4,rx*.12),fill:'rgba(0,0,0,.10)'},g);}
 function b_rotPt(px,py,cx,cy,deg){const a=deg*Math.PI/180,dx=px-cx,dy=py-cy;return[cx+dx*Math.cos(a)-dy*Math.sin(a),cy+dx*Math.sin(a)+dy*Math.cos(a)];}
 function b_hOf(s){return s.k==='sq'||s.k==='circ'?s.w:(s.h||s.w);}
 /* plane shape: s={k,x,y,w,h,rot,c} */
@@ -37,12 +41,12 @@ function b_badge(x,y,n,color='#e63946'){const g=el('g',{class:'pop'});el('circle
 /* 3D solids (simple oblique view). return {g,reg} */
 function b_quad(p,pts,fill,shade){const s=pts.map(q=>q.join(',')).join(' ');el('polygon',{points:s,fill,stroke:b_INK,'stroke-width':2.5,'stroke-linejoin':'round'},p);
   if(shade)el('polygon',{points:s,fill:shade>0?'#fff':'#000',opacity:Math.abs(shade),'pointer-events':'none'},p);}
-function b_box(p,x,base,w,h,d,col,faceCol){const g=el('g',{},p),y=base-h,dy=d*.55;
+function b_box(p,x,base,w,h,d,col,faceCol){const g=el('g',{},p),y=base-h,dy=d*.55;b_shadow(g,x+(w+d)/2,base-dy/2,(w+d)/2+4);
   b_quad(g,[[x,y],[x+d,y-dy],[x+w+d,y-dy],[x+w,y]],col,.35);
   b_quad(g,[[x+w,y],[x+w+d,y-dy],[x+w+d,base-dy],[x+w,base]],col,-.18);
   const f=el('rect',{x,y,width:w,height:h,fill:faceCol||col,stroke:b_INK,'stroke-width':2.5},g);
   return{g,face:{k:w===h?'sq':'rect',x:x+w/2,y:y+h/2,w,h},reg:{x:x-10,y:y-dy-10,w:w+d+20,h:h+dy+20}};}
-function b_cyl(p,cx,base,r,h,col,topCol){const g=el('g',{},p),ry=r*.32;
+function b_cyl(p,cx,base,r,h,col,topCol){const g=el('g',{},p),ry=r*.32;b_shadow(g,cx,base,r+6);
   el('path',{d:`M${cx-r} ${base-h} L${cx-r} ${base} A${r} ${ry} 0 0 0 ${cx+r} ${base} L${cx+r} ${base-h} Z`,fill:col,stroke:b_INK,'stroke-width':2.5},g);
   el('rect',{x:cx-r+10,y:base-h+ry,width:10,height:h-ry-6,rx:5,fill:'#fff',opacity:.35},g);
   el('ellipse',{cx,cy:base-h,rx:r,ry,fill:topCol||col,stroke:b_INK,'stroke-width':2.5},g);
@@ -124,14 +128,14 @@ export const unitShape={count:8,practice:['shpName','shpClassify','shpRoll','shp
    b_ground(370);txt(170,400,'長方體',{'font-size':20});txt(400,400,'圓柱',{'font-size':20});txt(630,400,'球',{'font-size':20});
    await say('我們來疊疊看，哪一種疊得高高的？',id);
    const g=await askChoice([{label:'長方體',color:'#e09b00',value:0},{label:'圓柱',color:'#219ebc',value:1},{label:'球',color:'#fb8500',value:2}],id);
-   const drop=async(make)=>{const o=make();o.g.setAttribute('transform','translate(0,-160)');await tween(450,e=>o.g.setAttribute('transform',`translate(0,${-160*(1-e)})`),id);return o;};
+   const drop=async(make)=>{const o=make();o.g.setAttribute('transform','translate(0,-160)');await tween(450,e=>o.g.setAttribute('transform',`translate(0,${-160*(1-e)})`),id,EASE.outBounce);return o;};
    for(let i=0;i<3;i++)await drop(()=>b_box(svg,105,370-i*62,110,62,30,'#ffb703'));
    await say('長方體一個一個疊上去，好穩！',id);
    for(let i=0;i<3;i++)await drop(()=>b_cyl(svg,400,370-i*62,45,62,'#8ecae6'));
    await say('圓柱也可以疊，因為上下都是平平的。',id);
    b_ball(svg,630,328,42,'#fb8500');
    for(let k=0;k<2;k++){const o=b_ball(svg,630,244,42,'#fb8500');o.g.setAttribute('transform','translate(0,-120)');
-     await tween(400,e=>o.g.setAttribute('transform',`translate(0,${-120*(1-e)})`),id);
+     await tween(400,e=>o.g.setAttribute('transform',`translate(0,${-120*(1-e)})`),id,EASE.outBounce);
      const dir=k?-1:1;await tween(700,e=>o.g.setAttribute('transform',`translate(${dir*(70+40*k)*e},${84*Math.min(1,e*1.4)}) rotate(${dir*200*e} 630 244)`),id);}
    await say('球疊上去，就滾下來了！',id);
    await say('有平平的面才可以疊高；圓圓的球會滾，不能疊。'+(g===2?'':'所以長方體和圓柱都可以疊高。'),id);}},

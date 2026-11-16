@@ -14,6 +14,14 @@ import { subEl, say, wait, stopSpeech } from './speech.js';
 import { playSfx } from './sfx.js';
 import { el, txt, clear, paren, markShape } from './svg.js';
 import { bar, clearBar, button, enterLesson } from './ui.js';
+import { uiUrl } from './emoji.js';
+import { confetti, starBurst, replay } from './fx.js';
+
+// 答題回饋特效：答對灑紙花（種子用題號，圖樣固定）、答錯讓記號輕搖，並通知吉祥物。
+// 都是 CSS 動畫，不 await、不加按鈕、不呼叫 Math.random。
+function answerFx(ok){const st=$('#stage');
+  if(ok)confetti(st,{seed:(P?P.i:0)+1});else if(layer.marks&&layer.marks.childNodes.length)replay(layer.marks,'shake');
+  window.dispatchEvent(new CustomEvent('lesson:answer',{detail:{ok}}));}
 
 /** 題型登記表：key → () => Item */
 export const GEN = {};
@@ -32,7 +40,7 @@ export function setPracticeHooks(h) { hooks = { ...hooks, ...h }; }
 
 let P=null,item=null,marks={},tool='v',regs=[],layer={},sel=null;
 /** cfg: { title, types?, count?, queue?, unitId? }；unitId 是單元固定 ID，再練一次時為 null。 */
-export function startPractice(cfg){P={cfg,i:0,correct:0,wrong:[],queue:cfg.queue||makeQueue(cfg.types,cfg.count)};enterLesson();$('#nav').classList.add('hidden');nextItem();}
+export function startPractice(cfg){const st=$('#stage');if(st)st.dataset.mode='practice';P={cfg,i:0,correct:0,wrong:[],queue:cfg.queue||makeQueue(cfg.types,cfg.count)};enterLesson();$('#nav').classList.add('hidden');nextItem();}
 /** 離開單元時清掉練習狀態（舊檔 goHome 裡的 P=null）。 */
 export function resetPractice(){P=null;}
 function makeQueue(types,count){let q=[];while(q.length<count)q=q.concat(shuffle(types));return q.slice(0,count);}
@@ -81,7 +89,7 @@ async function check(id){if(item.done)return;
     else if(item.mode==='dual')ok=marks[item.answer.v]==='v'&&marks[item.answer.o]==='o';
     else if(item.mode==='match')ok=item.answer.every((j,i)=>marks[i]===j);
     else ok=item.answer.every((a,i)=>marks[i]===a);
-    if(ok)P.correct++;else P.wrong.push(item.type);updScore();playSfx(ok?'correct':'wrong');
+    if(ok)P.correct++;else P.wrong.push(item.type);updScore();playSfx(ok?'correct':'wrong');answerFx(ok);
     // show correct marks in green
     if(layer.hit)layer.hit.remove();const sol=el('g',{});
     if(item.mode==='num'){if(!ok)item.fill(item.answer,'#2bb673');}
@@ -96,14 +104,23 @@ async function check(id){if(item.done)return;
     const last=P.i===P.queue.length-1;const b=button(last?'看結果 🏆':'下一題 ▶','#2bb673',()=>{P.i++;nextItem();},'pulse');b.id='nextQ';
   }catch(e){if(e!==ABORT)console.error(e);}}
 async function practiceEnd(id){$('#crumb').innerHTML='';$('#stTxt').textContent='🏆 練習結果';const n=P.correct,t=P.queue.length;
-  for(let i=0;i<Math.min(t,10);i++)txt(400-(Math.min(t,10)-1)*35+i*70,150,i<Math.round(n/t*Math.min(t,10))?'⭐':'☆',{'font-size':54,fill:'#d8c9a8',class:'svgtxt pop'});
-  txt(400,270,`答對 ${n} / ${t} 題`,{'font-size':42,fill:'#e07a00'});
+  // 星星改用 Fluent 圖片，一顆一顆彈出來；沒拿到的星星用同一張圖加 .dim（變灰變淡）。
+  const k=Math.min(t,10),got=Math.round(n/t*k);
+  for(let i=0;i<k;i++){const cx=400-(k-1)*35+i*70;el('image',{href:uiUrl('star'),x:cx-31,y:150-31,width:62,height:62,class:'svgtxt pop'+(i<got?'':' dim'),style:`animation-delay:${(i*.12).toFixed(2)}s`});}
+  if(n/t>=.6)el('image',{href:uiUrl('trophy'),x:400-36,y:300,width:72,height:72,class:'svgtxt pop',style:`animation-delay:${(k*.12+.1).toFixed(2)}s`});
+  countUp(txt(400,250,`答對 0 / ${t} 題`,{'font-size':42,fill:'#e07a00'}),n,t,id);
+  if(n/t>=.6){const st=$('#stage');confetti(st,{seed:77});if(n===t)starBurst(st,{xPct:50,yPct:36});}
   playSfx('star');
   if(P.cfg.unitId)hooks.onResult(P.cfg.unitId,Math.round(n/t*3));
   const wrong=[...new Set(P.wrong)];
   if(wrong.length){button('🔁 錯的再練一次','#ff8c42',()=>startPractice({title:'再練一次',types:wrong,queue:shuffle(P.wrong.concat(P.wrong).slice(0,Math.max(3,P.wrong.length))),unitId:null}));}
   button('🏠 回首頁','#3a86ff',()=>hooks.goHome());
   try{if(n===t)await say('太厲害了！全部答對！',id);else if(n/t>=.6)await say(`很棒！答對${n}題。錯的題目再練一次，會更厲害！`,id);else await say('沒關係！回去看動畫，再來挑戰一次！',id);}catch{/* 離開結果頁時語音被中止，不必處理 */}}
+
+/* 結果頁的分數從 0 數到 n（只改 SVG 文字，不動字幕）；最後一定停在原本的文字。 */
+function countUp(node,n,t,id){const t0=performance.now(),dur=Math.max(300,n*90);
+  const step=now=>{if(id!==S.runId)return;const p=Math.min(1,(now-t0)/dur);node.textContent=`答對 ${Math.round(n*p)} / ${t} 題`;if(p<1)requestAnimationFrame(step);};
+  requestAnimationFrame(step);}
 
 /* test hook：對照測試用 window.__T.answer() 作答，行為和舊檔相同。 */
 window.__T={answer(correct=true){if(!item||item.done)return;

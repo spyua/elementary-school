@@ -1,9 +1,11 @@
 // 一上數學學期包：比長短：長度繪圖工具、拉直互動，直線和曲線、曲線比長短、厚和薄、比高矮四個單元與題型。
 // 程式從舊版單檔原樣搬來，只補上 import／export，並把 runId 改成 S.runId。
+// 動畫升級：瓢蟲改用 Fluent 圖（藍藍用 hueRotate 濾鏡變藍、走路輕擺）、糖果與口訣卡圖片、地面加厚度。字幕、亂數、時長都沒有改。
 import { ABORT, S } from '../../../engine/state.js';
 import { C, RED, BLUE, rand, ri, pick, shuffle, distinct, POS3, POS2 } from '../../../engine/util.js';
 import { subEl, chk, wait, speakOne, say } from '../../../engine/speech.js';
 import { svg, el, txt, tween, paren, markShape } from '../../../engine/svg.js';
+import { emojiAt } from '../../../engine/emoji.js';
 import { clearBar, button, askChoice } from '../../../engine/ui.js';
 
 const pstr=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
@@ -26,14 +28,19 @@ async function blocks(x,y,n,unit,col,id,fast){for(let i=0;i<n;i++){chk(id);const
   el('rect',{x:x+i*unit+2,y:y+14,width:unit-4,height:26,rx:7,fill:col.l,stroke:col.c,'stroke-width':2},g);
   txt(x+i*unit+unit/2,y+28,String(i+1),{fill:col.c,'font-size':unit>45?18:15},g);await wait(fast?90:160,id);}}
 function label(x,y,col,name){el('circle',{cx:x,cy:y,r:22,fill:col.c});txt(x,y+1,name||col.n,{fill:'#fff','font-size':19});}
-function bug(color){const g=el('g',{});el('circle',{r:17,fill:color,stroke:'#fff','stroke-width':3},g);
-  el('circle',{cx:-6,cy:-4,r:4,fill:'#fff'},g);el('circle',{cx:6,cy:-4,r:4,fill:'#fff'},g);el('circle',{cx:-6,cy:-4,r:2,fill:'#222'},g);el('circle',{cx:6,cy:-4,r:2,fill:'#222'},g);
-  el('path',{d:'M-6 6 Q0 11 6 6',stroke:'#fff','stroke-width':2.5,fill:'none','stroke-linecap':'round'},g);return g;}
+/* 小瓢蟲：Fluent 🐞 圖片，走路時身體輕擺（.waddle）。紅紅用原色；藍藍套 SVG hueRotate 濾鏡變藍。
+   用 SVG 濾鏡而不是 CSS filter，是因為 iPad Safari 對 SVG 元素的 CSS filter 支援不穩。 */
+function bugFilter(){if(svg.querySelector('#bugBlue'))return;const d=el('defs',{});
+  const f=el('filter',{id:'bugBlue','color-interpolation-filters':'sRGB'},d);el('feColorMatrix',{type:'hueRotate',values:'215'},f);}
+function bug(color){const g=el('g',{}),blue=color!==RED.c;el('ellipse',{cx:0,cy:15,rx:14,ry:4,fill:'rgba(0,0,0,.15)'},g);
+  if(blue)bugFilter();const b=emojiAt(0,-2,'🐞',{'font-size':32,class:'svgtxt waddle'},g);if(blue)b.setAttribute('filter','url(#bugBlue)');return g;}
 function walk(L,color,speed,id){const p=L.pts,c=cumLen(p),total=c[c.length-1],g=bug(color),dur=total/speed*1000;
   return new Promise((res,rej)=>{const t0=performance.now();let i=0;const step=now=>{if(id!==S.runId){rej(ABORT);return;}
     const d=Math.min(total,(now-t0)/dur*total);while(i<c.length-2&&c[i+1]<d)i++;const k=(d-c[i])/((c[i+1]-c[i])||1);
     g.setAttribute('transform',`translate(${p[i][0]+(p[i+1][0]-p[i][0])*k},${p[i][1]+(p[i+1][1]-p[i][1])*k-2})`);d<total?requestAnimationFrame(step):res(g);};requestAnimationFrame(step);});}
-function candy(x,y){txt(x,y,'🍬',{'font-size':32});}
+function candy(x,y){emojiAt(x,y,'🍬',{'font-size':32,class:'svgtxt bob'});}
+/* 地面：先畫一條有厚度的土色帶，再畫原本的線。 */
+function ground(x1,y,x2){el('rect',{x:x1,y,width:x2-x1,height:12,rx:6,fill:'#f3e7cf'});el('line',{x1,y1:y,x2,y2:y,stroke:'#c9b28a','stroke-width':4});}
 function ruler(x,y,len,angle=0,parent=svg){const g=el('g',{transform:`rotate(${angle} ${x} ${y})`,class:'pop'},parent);
   el('rect',{x,y:y-34,width:len,height:24,rx:4,fill:'#ffe08a',stroke:'#d4a72c','stroke-width':2},g);
   for(let i=10;i<len;i+=20)el('line',{x1:x+i,y1:y-10,x2:x+i,y2:y-(i%40===10?22:16),stroke:'#a07818','stroke-width':2},g);return g;}
@@ -142,15 +149,15 @@ export const unitCurve={practice:['rope','box','curve3'],
    await say('藍色8格，紅色只有6格。這次是直線比較長！',id);await say('所以不能只看彎不彎，要拉直，再比一比。',id);}},
  {title:'記住小口訣',async run(id){
    const L=[['🏁','起點終點一樣時，直直的線最短。','#e8f1ff'],['〰️','起點終點一樣時，彎得越多，線越長。','#ffe8e8'],['🪄','不確定？把線拉直，再數格子！','#e6f8ee']];
-   for(let i=0;i<3;i++){const y=90+i*120,g=el('g',{class:'pop'});el('rect',{x:40,y:y-45,width:720,height:90,rx:20,fill:L[i][2]},g);
-     txt(95,y+2,L[i][0],{'font-size':38},g);txt(140,y+2,L[i][1],{'font-size':26,fill:'#3d2c1e','text-anchor':'start'},g);await say(L[i][1],id);}
+   for(let i=0;i<3;i++){const y=90+i*120,g=el('g',{class:'pop'});el('rect',{x:40,y:y-39,width:720,height:90,rx:20,fill:'rgba(61,44,30,.10)'},g);el('rect',{x:40,y:y-45,width:720,height:90,rx:20,fill:L[i][2]},g);
+     emojiAt(95,y+2,L[i][0],{'font-size':38},g);txt(140,y+2,L[i][1],{'font-size':26,fill:'#3d2c1e','text-anchor':'start'},g);await say(L[i][1],id);}
    await say('接下來換你練習！',id);}}
  ]};
 
 export const unitThick={practice:['thick2','thick3'],
  scenes:[
  {title:'什麼是厚？什麼是薄？',async run(id){
-   el('line',{x1:60,y1:360,x2:740,y2:360,stroke:'#c9b28a','stroke-width':4});
+   ground(60,360,740);
    const g=el('g',{});objBread(g,250,360,1,170);await say('一片吐司，薄薄的。',id);
    const nums=['兩','三','四','五'];
    for(let i=2;i<=5;i++){g.innerHTML='';objBread(g,250,360,i,170);await say(nums[i-2]+'片。',id);}
@@ -159,21 +166,21 @@ export const unitThick={practice:['thick2','thick3'],
    await say('一張紙很薄。',id);const b=el('g',{class:'pop'});objBook(b,570,250,5,190,'#4d96ff');txt(570,140,'一本書',{'font-size':22,fill:'#7a6650'});
    await say('一本書很厚。',id);}},
  {title:'兩本書，哪本比較厚？',async run(id){
-   el('line',{x1:40,y1:340,x2:760,y2:340,stroke:'#c9b28a','stroke-width':4});
+   ground(40,340,760);
    const a=el('g',{}),b=el('g',{});const A=objBook(a,230,340,2,250,'#e76f51'),B=objBook(b,590,340,4,140,'#2a9d8f');
    await say('這兩本書平平放在桌上。',id);await say('哪一本比較厚？',id);
    const g=await askChoice([{label:'左邊',color:'#e76f51',value:0},{label:'右邊',color:'#2a9d8f',value:1}],id);
    dashed(60,B.top,760,B.top,'#2a9d8f');await say('看誰疊得比較高。右邊的書比較高，所以右邊比較厚。'+(g===1?'答對了！':''),id);
    await say('左邊的書雖然比較寬，但是比較矮，所以比較薄。',id);await say('記住：寬寬的不一定厚喔！',id);}},
  {title:'三個比一比',async run(id){
-   el('line',{x1:40,y1:340,x2:760,y2:340,stroke:'#c9b28a','stroke-width':4});
+   ground(40,340,760);
    const lv=[3,1,5],xs=[200,400,600],gs=lv.map((v,i)=>{const g=el('g',{});objCake(g,xs[i],340,v,130);return g;});
    await say('三塊蛋糕，哪一塊最薄？哪一塊最厚？',id);await say('我們從薄排到厚。',id);
    const order=[1,0,2];await tween(1400,e=>{order.forEach((idx,pos)=>{gs[idx].setAttribute('transform',`translate(${(xs[pos]-xs[idx])*e},0)`);});},id);
    txt(200,380,'最薄',{'font-size':26,fill:'#2a9d8f',class:'svgtxt pop'});await say('這一塊最矮，最薄。',id);
    txt(600,380,'最厚',{'font-size':26,fill:'#e76f51',class:'svgtxt pop'});await say('這一塊最高，最厚。',id);}},
  {title:'題目要做兩件事！',async run(id){
-   el('line',{x1:40,y1:300,x2:760,y2:300,stroke:'#c9b28a','stroke-width':4});
+   ground(40,300,760);
    const lv=[2,4,1],xs=[200,400,600];lv.forEach((v,i)=>{const g=el('g',{});objBurger(g,xs[i],300,v,120);});
    const rs=xs.map(x=>({mx:x,my:360}));rs.forEach(r=>paren(r));
    txt(400,40,'最薄的打 ✓，最厚的畫 ○',{'font-size':30,fill:'#3d2c1e'});
@@ -185,7 +192,7 @@ export const unitThick={practice:['thick2','thick3'],
 export const unitAlign={practice:['align'],
  scenes:[
  {title:'站在箱子上的保溫瓶',async run(id){
-   el('line',{x1:60,y1:380,x2:740,y2:380,stroke:'#c9b28a','stroke-width':4});
+   ground(60,380,740);
    const box=el('g',{});el('rect',{x:420,y:300,width:140,height:80,fill:'#d9a066',stroke:'#a8743f','stroke-width':3},box);el('line',{x1:420,y1:340,x2:560,y2:340,stroke:'#a8743f','stroke-width':2},box);
    const A=bottle(svg,260,380,200,'#e76f51'),B=bottle(svg,490,300,160,'#3a86ff');
    txt(260,405,'甲',{'font-size':22});txt(490,405,'乙',{'font-size':22});
@@ -195,7 +202,7 @@ export const unitAlign={practice:['align'],
    await tween(1300,e=>{B.setAttribute('transform',`translate(0,${80*e})`);box.style.opacity=1-e;},id);
    dashed(80,180,720,180,'#e76f51');await say('原來是甲比較高！'+(g===0?'你答對了！':''),id);}},
  {title:'斜斜的竹竿',async run(id){
-   el('line',{x1:60,y1:380,x2:740,y2:380,stroke:'#c9b28a','stroke-width':4});
+   ground(60,380,740);
    const A=bamboo(svg,250,380,260,35),B=bamboo(svg,560,380,240,0);
    await say('一根竹竿斜斜的，一根直直站著。哪一根比較長？',id);
    const g=await askChoice([{label:'斜的',color:'#7cc36b',value:0},{label:'站著的',color:'#4d8f3e',value:1}],id);
@@ -266,7 +273,7 @@ export const TYPES={
  align(){const v=pick(['bottle','bamboo','bamboo2']);
    if(v==='bottle'){const bh=ri(60,90),hb=ri(130,170),hf=hb+ri(25,Math.min(45,bh-15)),raised=ri(0,1),xs=[250,520];let B,box;
      return{mode:'pick',prompt:'哪一個保溫瓶比較高？把它圈起來。',answer:1-raised,
-       draw(){el('line',{x1:60,y1:380,x2:740,y2:380,stroke:'#c9b28a','stroke-width':4});box=el('g',{});const bx=xs[raised];
+       draw(){ground(60,380,740);box=el('g',{});const bx=xs[raised];
          el('rect',{x:bx-70,y:380-bh,width:140,height:bh,fill:'#d9a066',stroke:'#a8743f','stroke-width':3},box);
          B=bottle(svg,bx,380-bh,hb,'#3a86ff');bottle(svg,xs[1-raised],380,hf,'#e76f51');
          return xs.map((x,i)=>i===raised?{x:x-75,y:380-bh-hb-10,w:150,h:bh+hb+20}:{x:x-40,y:380-hf-10,w:80,h:hf+20});},
@@ -275,7 +282,7 @@ export const TYPES={
    const ask=pick(['長','短']);const tiltLonger=Math.random()<.6;const Lv=ri(200,240),Lt=tiltLonger?Lv+ri(15,30):Lv-ri(30,50);const ang=pick([30,35,-30,-35]);
    const ti=ri(0,1),xs=[250,560];let T;const longIdx=tiltLonger?ti:1-ti;const ans=ask==='長'?longIdx:1-longIdx;
    return{mode:'pick',prompt:`哪一根竹竿比較${ask}？把它圈起來。`,answer:ans,
-     draw(){el('line',{x1:60,y1:380,x2:740,y2:380,stroke:'#c9b28a','stroke-width':4});T=bamboo(svg,xs[ti],380,Lt,ang);bamboo(svg,xs[1-ti],380,Lv,0);
+     draw(){ground(60,380,740);T=bamboo(svg,xs[ti],380,Lt,ang);bamboo(svg,xs[1-ti],380,Lv,0);
        return xs.map((x,i)=>i===ti?{x:x-(ang>0?20:Lt*.6),y:380-Lt-10,w:Lt*.6+40,h:Lt+20}:{x:x-30,y:380-Lv-10,w:60,h:Lv+20});},
      async explain(id){await say('斜斜的竹竿，先把它立起來再比。',id);await tween(1200,e=>T.setAttribute('transform',`rotate(${ang*(1-e)} ${xs[ti]} 380)`),id);
        dashed(70,380-Math.max(Lt,Lv),730,380-Math.max(Lt,Lv),'#4d8f3e');await say(`立起來比，${POS2[ans]}的竹竿比較${ask}。`,id);}};
@@ -287,7 +294,7 @@ function thickGen(n){const type=pick(Object.keys(THICK)),T=THICK[type];const lv=
   const xs=n===2?[270,530]:[180,400,620],base=320,iv=lv.indexOf(Math.min(...lv)),io=lv.indexOf(Math.max(...lv));let info=[];
   const P=n===2?POS2:POS3,w1=n===2?'比較':'最';
   return{mode:'dual',prompt:`${w1}薄的打 ✓，${w1}厚的畫 ○。`,answer:{v:iv,o:io},
-    draw(){el('line',{x1:40,y1:base,x2:760,y2:base,stroke:'#c9b28a','stroke-width':4});const cols=['#e76f51','#2a9d8f','#9b5de5'];
+    draw(){ground(40,base,760);const cols=['#e76f51','#2a9d8f','#9b5de5'];
       return xs.map((x,i)=>{const g=el('g',{});const r=T.f(g,x,base,lv[i],ws[i],cols[i]);info.push(r);return{x:x-ws[i]/2-14,y:r.top-12,w:ws[i]+28,h:base-r.top+20,mx:x,my:375};});},
     async explain(id){info.forEach((r,i)=>{if(i===io||i===iv)dashed(40,r.top,760,r.top,i===io?'#e76f51':'#2a9d8f');});
       await say(`平平放著，看誰疊得高。${P[io]}的${T.name}最高，${w1}厚，畫圈；${P[iv]}的最矮，${w1}薄，打勾。寬寬的不一定厚喔！`,id);}};}

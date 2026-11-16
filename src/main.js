@@ -15,6 +15,7 @@ import * as profilesView from './platform/views/profiles.js';
 import * as creditsView from './platform/views/credits.js';
 import { icon } from './platform/icons.js';
 import { renderNotDownloaded } from './platform/offline.js';
+import { mountMascot } from './engine/mascot.js';
 
 const $ = s => document.querySelector(s);
 const VIEWS = { home: homeView, grade: gradeView, semester: semesterView, profiles: profilesView, credits: creditsView };
@@ -97,6 +98,7 @@ $('#homeBtn').replaceChildren(icon('home', 30));
 $('#homeBtn').onclick = () => navigate(current.view === 'unit' ? semesterOf(current) : { view: 'home' });
 $('#profileBtn').onclick = () => navigate({ view: 'profiles' });
 $('#startBtn').onclick = unlockAudio;
+mountMascot();
 // 朗讀與音效分開開關，狀態存在 state.settings，重新整理後不變。
 function applySettings() {
   S.muted = state.settings.muted;

@@ -9,6 +9,13 @@ import { startPractice, resetPractice } from './practice.js';
 
 let unit=null,cur=0,pendingPractice=null;
 
+// 單元背景主題（#stage[data-theme]，樣式在 app.css）：數數是草地、加減是野餐桌、時間是天空、形狀是積木地墊。
+// 只是 CSS 背景，畫在 #svg 外面，不影響場景。沒有列在這裡的單元（例如英文）用預設的白底。
+const THEME={num10:'meadow',order:'meadow',num30:'meadow',split:'meadow',line:'paper',curve:'paper',thick:'paper',align:'paper',
+  'review-length':'paper',add:'picnic',sub:'picnic','review-all':'picnic',time:'sky',shape:'blocks'};
+/** 設定 #stage 的主題與模式（lesson／practice）。 */
+export function setStage(key,mode){const st=$('#stage');if(!st)return;const t=THEME[key];if(t)st.dataset.theme=t;else delete st.dataset.theme;if(mode)st.dataset.mode=mode;}
+
 /**
  * 打開單元。unit 是 catalog 中繼資料與學期包內容合併後的物件：
  * - 一般單元：{ id, icon, name, scenes, practice, count }
@@ -17,17 +24,17 @@ let unit=null,cur=0,pendingPractice=null;
  */
 export function openUnit(u){
   if(!u.scenes&&u.queue)return openReview(u);
-  unit=u;resetPractice();pendingPractice=null;enterLesson();$('#nav').classList.remove('hidden');$('#score').textContent='';
+  unit=u;setStage(u.key,'lesson');resetPractice();pendingPractice=null;enterLesson();$('#nav').classList.remove('hidden');$('#score').textContent='';
   if(!S.unlocked){$('#startOv').classList.remove('hidden');clear();subEl.textContent='　';$('#stTxt').textContent=u.icon+' '+u.name;}else go(0);}
 
-function openReview(rv){const cfg={title:rv.title,queue:rv.queue(),unitId:rv.id};
+function openReview(rv){setStage(rv.key,'practice');const cfg={title:rv.title,queue:rv.queue(),unitId:rv.id};
   if(!S.unlocked){pendingPractice=cfg;unit=null;enterLesson();$('#nav').classList.add('hidden');$('#crumb').innerHTML='';$('#score').textContent='';$('#stTxt').textContent='🏆 '+rv.title;clear();$('#startOv').classList.remove('hidden');}else startPractice(cfg);}
 
 /** 離開單元：讓進行中的動畫與語音停下來，清空畫布與按鈕列。 */
 export function closeLesson(){S.runId++;stopSpeech();clear();clearBar();resetPractice();unit=null;pendingPractice=null;$('#startOv').classList.add('hidden');}
 
 function renderCrumbU(){const c=$('#crumb');c.innerHTML='';unit.scenes.forEach((_,i)=>{const d=document.createElement('div');d.className='dot'+(i===cur?' on':i<cur?' done':'');c.appendChild(d);});}
-async function go(i){if(!unit)return;S.runId++;const id=S.runId;stopSpeech();cur=Math.max(0,Math.min(unit.scenes.length-1,i));clear();clearBar();
+async function go(i){if(!unit)return;S.runId++;setStage(unit.key,'lesson');const id=S.runId;stopSpeech();cur=Math.max(0,Math.min(unit.scenes.length-1,i));clear();clearBar();
   $('#next').classList.remove('pulse');$('#prev').disabled=cur===0;$('#next').disabled=cur===unit.scenes.length-1;
   renderCrumbU();$('#stTxt').textContent=`${unit.icon} ${unit.name}　${cur+1}. ${unit.scenes[cur].title}`;subEl.textContent='　';
   try{await unit.scenes[cur].run(id);if(id!==S.runId)return;
